@@ -7,9 +7,6 @@
     <title>Kaenpro - Elite Garage Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script>
-      window.process = { env: { API_KEY: "" } };
-    </script>
     <style>
         :root {
             --brand-red: #E11D48;
@@ -28,19 +25,24 @@
         .glow-red { box-shadow: 0 4px 15px rgba(225, 29, 72, 0.2); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         * { scroll-behavior: smooth; }
+        
+        /* Ajuste para garantir que o conteúdo não seja cortado por safe areas de iPhones */
+        main {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
     </style>
 <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.12.0",
     "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
     "@google/genai": "https://esm.sh/@google/genai@^1.35.0",
-    "html2canvas": "https://esm.sh/html2canvas@^1.4.1",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.12.0",
     "vite": "https://esm.sh/vite@^7.3.1",
     "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "html2canvas": "https://esm.sh/html2canvas@^1.4.1",
     "recharts": "https://esm.sh/recharts@^3.6.0"
   }
 }
