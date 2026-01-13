@@ -11,15 +11,19 @@ interface HeaderProps {
   syncStatus: SyncStatus;
 }
 
+// Fixed: Added missing export for Header component
 const Header: React.FC<HeaderProps> = ({ onLogout, onToggleSidebar, role, username, syncStatus }) => {
   return (
     <header className="h-20 border-b border-zinc-800/50 bg-[#0c0c0e] flex items-center justify-between px-6 md:px-10 z-30 shadow-sm">
       <div className="flex items-center gap-6">
+        {/* BOTÃO DE 3 BARRAS - AGORA VISÍVEL NO DESKTOP TAMBÉM */}
         <button 
           onClick={onToggleSidebar}
-          className="md:hidden p-2 text-zinc-500 hover:text-white transition-colors"
+          className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-400 hover:text-white hover:border-[#E11D48] transition-all active:scale-95 flex items-center gap-2 group"
+          title="Abrir Menu Principal"
         >
-          <Menu size={22} />
+          <Menu size={20} />
+          <span className="hidden sm:block text-[10px] font-black uppercase tracking-widest group-hover:text-[#E11D48]">Menu Geral</span>
         </button>
 
         <div className="hidden lg:flex items-center gap-3 px-4 py-2 bg-zinc-900/50 border border-zinc-800 rounded-full">

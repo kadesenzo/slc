@@ -65,12 +65,14 @@ const App: React.FC = () => {
   };
 
   const PrivateLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    // ESTADO DO MENU LATERAL - AGORA PARA TODOS OS DISPOSITIVOS
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     if (!session) return <Navigate to="/login" replace />;
 
     return (
       <div className="flex h-screen bg-[#0B0B0B] overflow-hidden">
+        {/* SIDEBAR AGORA TRABALHA COMO OVERLAY GLOBAL */}
         <Sidebar 
           role={session.role} 
           isOpen={isSidebarOpen} 
@@ -86,18 +88,11 @@ const App: React.FC = () => {
             onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           />
           
-          <main className="flex-1 overflow-y-auto p-4 md:p-8 no-scrollbar bg-zinc-950">
+          <main className="flex-1 overflow-y-auto p-4 md:p-8 no-scrollbar bg-zinc-950 transition-all duration-300">
             {React.isValidElement(children) 
               ? React.cloneElement(children as React.ReactElement<any>, { session, syncData })
               : children}
           </main>
-
-          {isSidebarOpen && (
-            <div 
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[40] md:hidden"
-              onClick={() => setIsSidebarOpen(false)}
-            />
-          )}
         </div>
       </div>
     );
