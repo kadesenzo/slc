@@ -42,11 +42,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleLogin = (username: string, role: 'Dono' | 'Funcionário' | 'Recepção') => {
-    const newSession: UserSession = {
-      username,
-      role,
-      lastSync: new Date().toISOString()
-    };
+    const newSession: UserSession = { username, role, lastSync: new Date().toISOString() };
     setSession(newSession);
     sessionStorage.setItem('kaenpro_session', JSON.stringify(newSession));
     performCloudSync('Full Fetch');
@@ -65,19 +61,13 @@ const App: React.FC = () => {
   };
 
   const PrivateLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    // ESTADO DO MENU LATERAL - AGORA PARA TODOS OS DISPOSITIVOS
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     if (!session) return <Navigate to="/login" replace />;
 
     return (
       <div className="flex h-screen bg-[#0B0B0B] overflow-hidden">
-        {/* SIDEBAR AGORA TRABALHA COMO OVERLAY GLOBAL */}
-        <Sidebar 
-          role={session.role} 
-          isOpen={isSidebarOpen} 
-          onClose={() => setIsSidebarOpen(false)} 
-        />
+        <Sidebar role={session.role} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         
         <div className="flex-1 flex flex-col overflow-hidden relative">
           <Header 
@@ -88,7 +78,8 @@ const App: React.FC = () => {
             onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           />
           
-          <main className="flex-1 overflow-y-auto p-4 md:p-8 no-scrollbar bg-zinc-950 transition-all duration-300">
+          {/* ÁREA PRINCIPAL COM SCROLL FLUIDO */}
+          <main className="flex-1 overflow-y-auto no-scrollbar bg-zinc-950 scroll-smooth overscroll-contain">
             {React.isValidElement(children) 
               ? React.cloneElement(children as React.ReactElement<any>, { session, syncData })
               : children}
@@ -102,15 +93,10 @@ const App: React.FC = () => {
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage onLogin={() => {}} />} />
-        
-        <Route 
-          path="/login" 
-          element={session ? <Navigate to="/dashboard" replace /> : <LoginPage onLogin={handleLogin} />} 
-        />
-        
+        <Route path="/login" element={session ? <Navigate to="/dashboard" replace /> : <LoginPage onLogin={handleLogin} />} />
         <Route path="/dashboard" element={<PrivateLayout><Dashboard /></PrivateLayout>} />
         <Route path="/calendar" element={<PrivateLayout><Calendar /></PrivateLayout>} />
-        <Route path="/orders" element={<PrivateLayout><ServiceOrders /></PrivateLayout>} />
+        <Route path="/orders" element={<PrivateLayout><ServiceOrders role={session?.role} /></PrivateLayout>} />
         <Route path="/orders/new" element={<PrivateLayout><NewServiceOrder /></PrivateLayout>} />
         <Route path="/billing" element={<PrivateLayout><Billing /></PrivateLayout>} />
         <Route path="/financial" element={<PrivateLayout><Financial /></PrivateLayout>} />
@@ -121,7 +107,6 @@ const App: React.FC = () => {
         <Route path="/vehicles/:id" element={<PrivateLayout><VehicleDetails /></PrivateLayout>} />
         <Route path="/employees" element={<PrivateLayout><Employees /></PrivateLayout>} />
         <Route path="/terminal" element={<PrivateLayout><MechanicTerminal /></PrivateLayout>} />
-        
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

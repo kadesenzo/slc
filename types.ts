@@ -21,7 +21,7 @@ export enum PaymentMethod {
   PIX = 'PIX',
   DINHEIRO = 'Dinheiro',
   CARTAO_CREDITO = 'Cartão de Crédito',
-  CARTAO_DEBITO = 'Cartão de Dezbito',
+  CARTAO_DEBITO = 'Cartão de Débito',
   OUTRO = 'Outro'
 }
 
@@ -32,7 +32,7 @@ export interface FinancialTransaction {
   amount: number;
   method: PaymentMethod;
   description: string;
-  relatedId?: string; // OS ID ou referência
+  relatedId?: string;
   date: string;
 }
 
@@ -97,19 +97,6 @@ export interface OSItem {
   type: 'PART' | 'SERVICE';
 }
 
-export interface Appointment {
-  id: string;
-  clientId: string;
-  clientName: string;
-  vehiclePlate: string;
-  serviceType: string;
-  date: string; // YYYY-MM-DD
-  time: string; // HH:mm
-  status: 'Agendado' | 'Confirmado' | 'Cancelado' | 'Finalizado';
-  attemptsCount: number;
-  notes?: string;
-}
-
 export interface ServiceOrder {
   id: string;
   osNumber: string;
@@ -127,17 +114,30 @@ export interface ServiceOrder {
   status: OSStatus;
   paymentStatus: PaymentStatus;
   paymentMethod?: PaymentMethod;
+  observations?: string;
   dueDate?: string;
   createdAt: string;
   updatedAt: string;
 }
 
+// Added missing VehicleChecklist interface to support MechanicTerminal view
 export interface VehicleChecklist {
-  id: string;
-  vehicleId: string;
   fuelLevel: string;
   damages: string[];
   items: Record<string, boolean>;
   observations: string;
-  createdAt: string;
+}
+
+// Added missing Appointment interface to support Calendar view
+export interface Appointment {
+  id: string;
+  clientId: string;
+  clientName: string;
+  vehiclePlate: string;
+  serviceType: string;
+  date: string;
+  time: string;
+  status: string;
+  attemptsCount: number;
+  notes?: string;
 }
