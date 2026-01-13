@@ -3,8 +3,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Trash2, Wrench, ChevronLeft, X,
   User, Car, Search, Loader2, Download, DollarSign,
-  Printer, Save, MessageCircle, ArrowRight, CheckCircle2,
-  Share2, Image as ImageIcon
+  Printer, Save, MessageCircle, Share2, ImageIcon, Check
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Client, Vehicle, OSItem, OSStatus, ServiceOrder, PaymentStatus, UserSession, PaymentMethod, TransactionType, FinancialTransaction } from '../types';
@@ -71,7 +70,7 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
   };
 
   const removeItem = (id: string) => {
-    setItems(items.filter(id !== id));
+    setItems(items.filter(i => i.id !== id));
   };
 
   const handleFinalize = async () => {
@@ -94,13 +93,13 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
         vehiclePlate: selectedVehicle.plate,
         vehicleModel: selectedVehicle.model,
         vehicleKm: selectedVehicle.km.toString(),
-        problem: obs || 'Serviço Geral',
+        problem: obs || 'Manutenção Preventiva',
         items,
         laborValue: parseFloat(labor) || 0,
         discount: parseFloat(discount) || 0,
         totalValue,
         status: OSStatus.FINALIZADO,
-        paymentStatus: paymentStatus,
+        paymentStatus,
         paymentMethod,
         observations: obs,
         createdAt: new Date().toISOString(),
@@ -149,13 +148,8 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
     <div className="flex flex-col h-full bg-[#0B0B0B] text-white overflow-hidden">
-      {/* Header Fixo */}
       <div className="p-6 border-b border-zinc-800 flex items-center justify-between sticky top-0 bg-[#0B0B0B] z-20 print:hidden">
         <button onClick={() => navigate(-1)} className="p-2 bg-zinc-900 rounded-xl text-zinc-400 hover:text-white transition-all">
           <ChevronLeft size={20} />
@@ -164,320 +158,252 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
         <div className="w-10"></div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar pb-32 print:p-0 print:overflow-visible print:bg-white">
-        {step === 'CLIENT' && (
-          <div className="space-y-6 animate-in slide-in-from-bottom duration-300 print:hidden">
-            <div className="bg-zinc-900/50 p-8 rounded-[2.5rem] border border-zinc-800 shadow-xl">
-              <h3 className="text-[10px] font-black uppercase text-zinc-500 mb-6 tracking-widest italic">1. Identificação do Cliente</h3>
-              {!selectedClient ? (
-                <div className="space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar pb-32 print:p-0">
+        {step !== 'FINAL' && (
+           <div className="max-w-xl mx-auto space-y-8 animate-in slide-in-from-bottom duration-300">
+             {/* SELEÇÃO DE CLIENTE E VEÍCULO */}
+             <div className="bg-zinc-900/50 p-8 rounded-[2.5rem] border border-zinc-800 shadow-xl space-y-6">
+                <h3 className="text-[10px] font-black uppercase text-zinc-500 tracking-widest italic">1. Identificação</h3>
+                {!selectedClient ? (
                   <div className="relative">
                     <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600" size={18} />
                     <input 
                       type="text" value={clientSearch} onChange={(e) => setClientSearch(e.target.value)}
-                      placeholder="Pesquisar Nome ou Celular..."
+                      placeholder="Pesquisar por Nome ou Telefone..."
                       className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-5 pl-14 pr-6 text-sm font-bold outline-none focus:border-[#E11D48] transition-all"
                     />
+                    {filteredClients.length > 0 && (
+                       <div className="mt-4 space-y-2 max-h-40 overflow-y-auto no-scrollbar">
+                         {filteredClients.map(c => (
+                           <button key={c.id} onClick={() => setSelectedClient(c)} className="w-full p-4 bg-zinc-950 rounded-xl flex items-center justify-between border border-transparent hover:border-[#E11D48]">
+                             <span className="text-xs font-black uppercase italic">{c.name}</span>
+                             <Plus size={14} className="text-[#E11D48]" />
+                           </button>
+                         ))}
+                       </div>
+                    )}
                   </div>
-                  <div className="max-h-60 overflow-y-auto space-y-2 no-scrollbar">
-                    {filteredClients.map(c => (
-                      <button key={c.id} onClick={() => setSelectedClient(c)} className="w-full p-5 bg-zinc-950 rounded-2xl flex items-center justify-between border border-transparent hover:border-[#E11D48] transition-all">
-                        <div className="text-left">
-                            <span className="font-black text-xs uppercase italic block">{c.name}</span>
-                            <span className="text-[9px] text-zinc-600 font-bold tracking-widest">{c.phone}</span>
+                ) : (
+                  <div className="bg-zinc-950 p-5 rounded-2xl border border-zinc-800 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <User size={18} className="text-[#E11D48]"/>
+                      <span className="text-xs font-black uppercase italic">{selectedClient.name}</span>
+                    </div>
+                    <button onClick={() => {setSelectedClient(null); setSelectedVehicle(null);}}><X size={18}/></button>
+                  </div>
+                )}
+
+                {selectedClient && !selectedVehicle && (
+                   <div className="grid grid-cols-2 gap-3">
+                     {clientVehicles.map(v => (
+                       <button key={v.id} onClick={() => setSelectedVehicle(v)} className="p-4 bg-zinc-950 border-2 border-zinc-800 rounded-2xl hover:border-[#E11D48] transition-all flex flex-col items-center gap-2">
+                         <Car size={20} className="text-zinc-600"/>
+                         <span className="text-[10px] font-black uppercase">{v.plate}</span>
+                       </button>
+                     ))}
+                   </div>
+                )}
+                
+                {selectedVehicle && (
+                   <div className="bg-zinc-950 p-5 rounded-2xl border border-zinc-800 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <Car size={18} className="text-[#E11D48]"/>
+                      <span className="text-xs font-black uppercase italic">{selectedVehicle.plate} • {selectedVehicle.model}</span>
+                    </div>
+                    <button onClick={() => setSelectedVehicle(null)}><X size={18}/></button>
+                  </div>
+                )}
+             </div>
+
+             {/* ITENS DA NOTA */}
+             {selectedVehicle && (
+               <div className="bg-zinc-900/50 p-8 rounded-[2.5rem] border border-zinc-800 shadow-xl space-y-6">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-[10px] font-black uppercase text-zinc-500 tracking-widest italic">2. Serviços e Peças</h3>
+                    <button onClick={addItem} className="p-2 bg-[#E11D48] rounded-lg text-white"><Plus size={16}/></button>
+                  </div>
+                  <div className="space-y-3">
+                    {items.map(item => (
+                      <div key={item.id} className="bg-zinc-950 p-4 rounded-xl border border-zinc-800 space-y-3">
+                        <input type="text" placeholder="Descrição do serviço..." value={item.description} onChange={(e)=>updateItem(item.id, 'description', e.target.value.toUpperCase())} className="w-full bg-transparent border-none text-[11px] font-black uppercase outline-none text-white italic"/>
+                        <div className="flex gap-2">
+                           <input type="number" placeholder="Qtd" value={item.quantity} onChange={(e)=>updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)} className="w-20 bg-zinc-900 border border-zinc-800 p-2 rounded-lg text-xs font-bold text-center"/>
+                           <input type="number" placeholder="Valor" value={item.unitPrice} onChange={(e)=>updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)} className="flex-1 bg-zinc-900 border border-zinc-800 p-2 rounded-lg text-xs font-bold"/>
+                           <button onClick={()=>removeItem(item.id)} className="text-red-500 p-2"><Trash2 size={16}/></button>
                         </div>
-                        <Plus size={16} className="text-[#E11D48]" />
-                      </button>
+                      </div>
                     ))}
                   </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between bg-zinc-950 p-6 rounded-2xl border border-emerald-500/20 shadow-inner">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500"><User size={20} /></div>
-                    <span className="font-black text-xs uppercase italic">{selectedClient.name}</span>
-                  </div>
-                  <button onClick={() => { setSelectedClient(null); setSelectedVehicle(null); }} className="p-2 text-zinc-600 hover:text-white transition-colors"><X size={20}/></button>
-                </div>
-              )}
-            </div>
 
-            {selectedClient && (
-              <div className="bg-zinc-900/50 p-8 rounded-[2.5rem] border border-zinc-800 animate-in fade-in shadow-xl">
-                <h3 className="text-[10px] font-black uppercase text-zinc-500 mb-6 tracking-widest italic">2. Veículo</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {clientVehicles.map(v => (
-                    <button 
-                      key={v.id} onClick={() => setSelectedVehicle(v)}
-                      className={`p-6 rounded-2xl border-2 transition-all flex flex-col items-center gap-3 ${selectedVehicle?.id === v.id ? 'border-[#E11D48] bg-[#E11D48]/10 text-white shadow-lg' : 'border-zinc-800 bg-zinc-950 text-zinc-600'}`}
-                    >
-                      <Car size={24} />
-                      <span className="font-black text-[10px] tracking-widest uppercase italic">{v.plate}</span>
-                    </button>
-                  ))}
-                </div>
-                {selectedVehicle && (
-                  <button onClick={() => setStep('ITEMS')} className="w-full mt-8 bg-[#E11D48] py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl active:scale-95 transition-all">
-                    Próximo: Itens da Nota
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {step === 'ITEMS' && (
-          <div className="space-y-6 animate-in slide-in-from-right duration-300 print:hidden">
-            <div className="bg-zinc-900/50 p-8 rounded-[2.5rem] border border-zinc-800 space-y-6 shadow-xl">
-              <div className="flex items-center justify-between">
-                <h3 className="text-[10px] font-black uppercase text-zinc-500 tracking-widest italic">3. Serviços e Peças</h3>
-                <button onClick={addItem} className="p-3 bg-zinc-800 text-[#E11D48] rounded-xl hover:bg-[#E11D48] hover:text-white transition-all shadow-md"><Plus size={18}/></button>
-              </div>
-
-              <div className="space-y-4">
-                {items.map(item => (
-                  <div key={item.id} className="bg-zinc-950 p-5 rounded-[1.5rem] border border-zinc-800 space-y-4 shadow-inner">
-                    <input 
-                      type="text" placeholder="Descrição do item..." value={item.description}
-                      onChange={(e) => updateItem(item.id, 'description', e.target.value.toUpperCase())}
-                      className="w-full bg-transparent border-none text-xs font-black text-white outline-none p-0 placeholder-zinc-800 uppercase italic"
-                    />
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2 bg-zinc-900 rounded-xl px-3 flex-1 border border-zinc-800/50">
-                         <span className="text-[8px] font-black text-zinc-600 uppercase">Qtd</span>
-                         <input type="number" value={item.quantity} onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)} className="w-full bg-transparent text-xs font-black py-3 outline-none" />
-                      </div>
-                      <div className="flex items-center gap-2 bg-zinc-900 rounded-xl px-3 flex-1 border border-zinc-800/50">
-                         <span className="text-[8px] font-black text-zinc-600 uppercase">R$</span>
-                         <input type="number" value={item.unitPrice} onChange={(e) => updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)} className="w-full bg-transparent text-xs font-black py-3 outline-none" />
-                      </div>
-                      <button onClick={() => removeItem(item.id)} className="p-3 text-zinc-700 hover:text-red-500 transition-all"><Trash2 size={18}/></button>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[8px] font-black text-zinc-600 uppercase mb-2 block">Mão de Obra</label>
+                      <input type="number" value={labor} onChange={(e)=>setLabor(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-4 text-xs font-black"/>
+                    </div>
+                    <div>
+                      <label className="text-[8px] font-black text-zinc-600 uppercase mb-2 block">Status Pagamento</label>
+                      <select value={paymentStatus} onChange={(e)=>setPaymentStatus(e.target.value as PaymentStatus)} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-4 text-[10px] font-black uppercase outline-none">
+                        <option value={PaymentStatus.PENDENTE}>Pendente</option>
+                        <option value={PaymentStatus.PAGO}>Pago</option>
+                      </select>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
 
-            <div className="bg-zinc-900/50 p-8 rounded-[2.5rem] border border-zinc-800 space-y-6 shadow-xl">
-              <h3 className="text-[10px] font-black uppercase text-zinc-500 tracking-widest italic">4. Resumo e Pagamento</h3>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[8px] font-black text-zinc-600 uppercase mb-2 block ml-1">Mão de Obra</label>
-                  <input type="number" value={labor} onChange={(e) => setLabor(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-4 text-sm font-black text-white" />
-                </div>
-                <div>
-                  <label className="text-[8px] font-black text-zinc-600 uppercase mb-2 block ml-1">Desconto</label>
-                  <input type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-4 text-sm font-black text-[#E11D48]" />
-                </div>
-              </div>
+                  <div className="p-6 bg-zinc-950 rounded-2xl border border-zinc-800 flex justify-between items-center">
+                    <span className="text-[10px] font-black uppercase text-zinc-500">Valor Final</span>
+                    <span className="text-xl font-black text-white italic">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[8px] font-black text-zinc-600 uppercase mb-2 block ml-1">Forma</label>
-                  <select 
-                    value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-4 text-xs font-black uppercase italic shadow-inner outline-none"
-                  >
-                    {Object.values(PaymentMethod).map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[8px] font-black text-zinc-600 uppercase mb-2 block ml-1">Status Pagamento</label>
-                  <select 
-                    value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value as PaymentStatus)}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-4 text-xs font-black uppercase italic shadow-inner outline-none"
-                  >
-                    <option value={PaymentStatus.PENDENTE}>Pendente</option>
-                    <option value={PaymentStatus.PAGO}>Pago</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[8px] font-black text-zinc-600 uppercase mb-2 block ml-1">Observações</label>
-                <textarea 
-                  value={obs} onChange={(e) => setObs(e.target.value)}
-                  placeholder="Garantia ou avisos..."
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-4 text-xs font-bold text-zinc-400 min-h-[100px]"
-                />
-              </div>
-
-              <div className="p-6 bg-[#E11D48] rounded-[2rem] flex justify-between items-center shadow-xl">
-                 <span className="text-[10px] font-black text-white/60 uppercase tracking-widest italic">Total Líquido</span>
-                 <span className="text-2xl font-black text-white italic">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-              </div>
-
-              <button 
-                onClick={handleFinalize} disabled={isSaving}
-                className="w-full bg-white text-black py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:bg-[#E11D48] hover:text-white transition-all active:scale-95 flex items-center justify-center gap-3"
-              >
-                {isSaving ? <Loader2 className="animate-spin" size={20}/> : <Save size={20}/>}
-                Gerar Nota Profissional
-              </button>
-            </div>
-          </div>
+                  <button onClick={handleFinalize} className="w-full bg-[#E11D48] py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all">
+                    {isSaving ? <Loader2 className="animate-spin"/> : <Check size={20}/>}
+                    Finalizar e Gerar Nota
+                  </button>
+               </div>
+             )}
+           </div>
         )}
 
         {step === 'FINAL' && finalOs && (
-          <div className="space-y-8 animate-in zoom-in duration-300 flex flex-col items-center print:block print:space-y-0 print:m-0">
-            {/* NOTA REPRODUZINDO A IMAGEM SOLICITADA */}
-            <div 
-              ref={invoiceRef}
-              id="print-area"
-              className="w-full max-w-[800px] bg-white text-zinc-900 rounded-[1.5rem] overflow-hidden shadow-2xl flex flex-col p-10 border border-zinc-100 print:shadow-none print:border-none print:rounded-none print:max-w-none print:p-8"
-            >
-              {/* Header */}
-              <div className="flex justify-between items-start mb-12">
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 bg-black rounded-xl flex items-center justify-center text-white shrink-0">
-                    <Wrench size={32} />
-                  </div>
-                  <div>
-                    <h1 className="text-2xl font-black tracking-tight uppercase leading-none mb-1">KAEN MECÂNICA</h1>
-                    <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Rua Joaquim Marques Alves, 765</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-[9px] font-black text-zinc-400 uppercase mb-1">OS Nº</p>
-                  <p className="text-2xl font-black text-zinc-900 leading-none mb-1">{finalOs.osNumber}</p>
-                  <p className="text-[10px] font-bold text-zinc-400">{new Date(finalOs.createdAt).toLocaleDateString('pt-BR')}</p>
-                </div>
-              </div>
-
-              {/* Info Blocks */}
-              <div className="grid grid-cols-2 gap-6 mb-12">
-                <div className="bg-[#fcfcfc] border border-zinc-100 p-6 rounded-[1.5rem] shadow-sm">
-                  <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-2">PROPRIETÁRIO</p>
-                  <p className="text-xl font-black uppercase italic mb-1">{finalOs.clientName}</p>
-                  <p className="text-[10px] font-bold text-zinc-400">{selectedClient?.phone}</p>
-                </div>
-                <div className="bg-[#fcfcfc] border border-zinc-100 p-6 rounded-[1.5rem] shadow-sm relative">
-                  <div className="grid grid-cols-2 gap-4">
+          <div className="animate-in zoom-in duration-300 flex flex-col items-center">
+             {/* A NOTA EM SI - DESIGN DA IMAGEM */}
+             <div 
+               ref={invoiceRef}
+               className="w-full max-w-[500px] bg-white text-zinc-900 p-10 flex flex-col rounded-sm shadow-2xl print:shadow-none print:max-w-none"
+             >
+                {/* Header */}
+                <div className="flex justify-between items-start mb-10">
+                  <div className="flex gap-4">
+                    <div className="w-14 h-14 bg-black rounded-lg flex items-center justify-center text-white shrink-0">
+                      <Wrench size={32} />
+                    </div>
                     <div>
-                      <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-2">VEÍCULO</p>
-                      <p className="text-xl font-black uppercase italic">{finalOs.vehiclePlate}</p>
-                      <p className="text-[10px] font-bold text-zinc-400 uppercase">{finalOs.vehicleModel}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-2">KM ATUAL</p>
-                      <p className="text-xl font-black uppercase italic">{finalOs.vehicleKm || '0'} km</p>
+                      <h1 className="text-2xl font-black tracking-tighter uppercase leading-none mb-1">KAEN MECÂNICA</h1>
+                      <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Rua Joaquim Marques Alves, 765</p>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Table */}
-              <div className="flex-1">
-                <table className="w-full text-left text-[11px] mb-8">
-                  <thead>
-                    <tr className="text-[8px] font-black text-zinc-300 uppercase tracking-widest border-b border-zinc-50">
-                      <th className="pb-4 pt-4">DESCRIÇÃO</th>
-                      <th className="pb-4 pt-4 text-right">QTD</th>
-                      <th className="pb-4 pt-4 text-right">UNITÁRIO</th>
-                      <th className="pb-4 pt-4 text-right">TOTAL</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-50 font-bold text-zinc-800">
-                    {finalOs.items.map((i,idx)=>(
-                      <tr key={idx}>
-                        <td className="py-4 uppercase">{i.description}</td>
-                        <td className="py-4 text-right">{i.quantity.toString().padStart(2, '0')}</td>
-                        <td className="py-4 text-right text-zinc-400">R$ {i.unitPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                        <td className="py-4 text-right font-black">R$ {(i.quantity*i.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                      </tr>
-                    ))}
-                    {finalOs.laborValue > 0 && (
-                      <tr>
-                        <td className="py-4 uppercase">Mão de Obra Especializada</td>
-                        <td className="py-4 text-right">01</td>
-                        <td className="py-4 text-right text-zinc-400">R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                        <td className="py-4 text-right font-black">R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                      </tr>
-                    )}
-                    {/* Linhas vazias para manter o estilo da imagem se necessário */}
-                    {[...Array(Math.max(0, 4 - finalOs.items.length))].map((_, i) => (
-                      <tr key={`empty-${i}`}><td className="py-4">&nbsp;</td><td className="py-4">&nbsp;</td><td className="py-4">&nbsp;</td><td className="py-4">&nbsp;</td></tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Bottom Totals and Payment */}
-              <div className="flex justify-between items-end mt-12 mb-16">
-                <div className="flex flex-col gap-6">
-                  {/* Payment Status Badge */}
-                  <div className={`px-5 py-2.5 rounded-full border-2 text-[10px] font-black uppercase tracking-widest ${finalOs.paymentStatus === PaymentStatus.PAGO ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
-                    PAGAMENTO: {finalOs.paymentStatus}
-                  </div>
-                  
-                  {/* Signature */}
-                  <div className="w-64 pt-4 border-t border-zinc-200">
-                    <p className="text-[8px] font-black text-zinc-300 uppercase text-center tracking-widest">ASSINATURA DO RESPONSÁVEL</p>
+                  <div className="text-right">
+                    <p className="text-[8px] font-black text-zinc-300 uppercase mb-1">OS Nº</p>
+                    <p className="text-2xl font-black leading-none mb-1">{finalOs.osNumber}</p>
+                    <p className="text-[9px] font-bold text-zinc-400">{new Date(finalOs.createdAt).toLocaleDateString('pt-BR')}</p>
                   </div>
                 </div>
 
-                {/* Total Box - Estilo Imagem */}
-                <div className="bg-[#f5f5f5] rounded-[2rem] px-10 py-6 flex flex-col items-end min-w-[240px]">
-                  <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1 italic">TOTAL DA NOTA</p>
-                  <p className="text-3xl font-black italic text-zinc-900 leading-none">R$ {finalOs.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                {/* Cards Info */}
+                <div className="grid grid-cols-2 gap-4 mb-10">
+                  <div className="bg-[#F8F8F8] p-5 rounded-2xl border border-zinc-100">
+                    <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest mb-2">PROPRIETÁRIO</p>
+                    <p className="text-base font-black uppercase italic leading-none">{finalOs.clientName}</p>
+                    <p className="text-[9px] font-bold text-zinc-400 mt-1">{selectedClient?.phone}</p>
+                  </div>
+                  <div className="bg-[#F8F8F8] p-5 rounded-2xl border border-zinc-100">
+                    <div className="flex justify-between">
+                       <div>
+                        <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest mb-2">VEÍCULO</p>
+                        <p className="text-base font-black uppercase italic leading-none">{finalOs.vehiclePlate}</p>
+                        <p className="text-[9px] font-bold text-zinc-400 mt-1 uppercase">{finalOs.vehicleModel}</p>
+                       </div>
+                       <div className="text-right">
+                        <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest mb-2">KM ATUAL</p>
+                        <p className="text-base font-black uppercase italic leading-none">{finalOs.vehicleKm || '0'} km</p>
+                       </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              {/* Footer */}
-              <div className="text-center pt-8 border-t border-zinc-50">
-                 <p className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.5em] italic">
-                   KAEN MECÂNICA • CONFIANÇA EM CADA KM
-                 </p>
-              </div>
-            </div>
+                {/* Tabela */}
+                <div className="flex-1">
+                   <table className="w-full text-left text-[11px] border-collapse">
+                      <thead>
+                        <tr className="text-[8px] font-black text-zinc-300 uppercase tracking-widest border-b border-zinc-50">
+                          <th className="pb-4">DESCRIÇÃO</th>
+                          <th className="pb-4 text-center">QTD</th>
+                          <th className="pb-4 text-right">UNITÁRIO</th>
+                          <th className="pb-4 text-right">TOTAL</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-50 text-zinc-800 font-bold">
+                        {finalOs.items.map((i,idx)=>(
+                          <tr key={idx}>
+                            <td className="py-4 uppercase italic">{i.description}</td>
+                            <td className="py-4 text-center">{i.quantity.toString().padStart(2, '0')}</td>
+                            <td className="py-4 text-right text-zinc-300">R$ {i.unitPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                            <td className="py-4 text-right font-black">R$ {(i.quantity*i.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                          </tr>
+                        ))}
+                        {finalOs.laborValue > 0 && (
+                          <tr>
+                            <td className="py-4 uppercase italic">Mão de Obra Especializada</td>
+                            <td className="py-4 text-center">01</td>
+                            <td className="py-4 text-right text-zinc-300">R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                            <td className="py-4 text-right font-black">R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                          </tr>
+                        )}
+                        {/* Linhas vazias para manter o estilo */}
+                        {[...Array(Math.max(0, 5 - finalOs.items.length))].map((_, i) => (
+                           <tr key={`empty-${i}`}><td className="py-4">&nbsp;</td><td className="py-4">&nbsp;</td><td className="py-4">&nbsp;</td><td className="py-4">&nbsp;</td></tr>
+                        ))}
+                      </tbody>
+                   </table>
+                </div>
 
-            {/* Ações Mobile */}
-            <div className="w-full space-y-4 pt-4 print:hidden">
-              <button onClick={shareWhatsApp} className="w-full bg-[#25D366] py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 shadow-xl active:scale-95 transition-all">
-                <MessageCircle size={22} /> Enviar no WhatsApp
-              </button>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <button onClick={downloadInvoice} className="bg-zinc-900 py-5 rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 border border-zinc-800 shadow-lg active:scale-95 transition-all">
-                  <ImageIcon size={18} /> Baixar como Imagem
+                {/* Rodapé da Nota */}
+                <div className="mt-10 pt-10 border-t border-zinc-100 flex justify-between items-end">
+                  <div className="space-y-6">
+                     <div className={`inline-block px-4 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest ${finalOs.paymentStatus === PaymentStatus.PAGO ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
+                        PAGAMENTO: {finalOs.paymentStatus}
+                     </div>
+                     <div className="w-56 pt-3 border-t border-zinc-200">
+                        <p className="text-[8px] font-black text-zinc-300 text-center uppercase tracking-widest">Assinatura do Responsável</p>
+                     </div>
+                  </div>
+
+                  <div className="bg-[#F5F5F5] px-10 py-6 rounded-3xl flex flex-col items-end">
+                    <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1 italic">Total da Nota</p>
+                    <p className="text-3xl font-black text-zinc-900 leading-none italic">R$ {finalOs.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                </div>
+
+                <div className="mt-10 text-center">
+                   <p className="text-[7px] font-black text-zinc-300 uppercase tracking-[0.5em] italic">KAEN MECÂNICA • CONFIANÇA EM CADA KM</p>
+                </div>
+             </div>
+
+             {/* Botões de Ação */}
+             <div className="w-full max-w-[500px] mt-8 space-y-4 print:hidden px-4">
+                <button onClick={shareWhatsApp} className="w-full bg-[#25D366] py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 shadow-xl active:scale-95 transition-all">
+                  <MessageCircle size={20}/> Enviar no WhatsApp
                 </button>
-                <button onClick={handlePrint} className="bg-zinc-900 py-5 rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 border border-zinc-800 shadow-lg active:scale-95 transition-all">
-                  <Printer size={18} /> Imprimir em Retrato
+                <div className="grid grid-cols-2 gap-3">
+                   <button onClick={downloadInvoice} className="bg-zinc-900 py-5 rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 border border-zinc-800 shadow-lg active:scale-95 transition-all">
+                      <ImageIcon size={18}/> Baixar Imagem
+                   </button>
+                   <button onClick={() => window.print()} className="bg-zinc-900 py-5 rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 border border-zinc-800 shadow-lg active:scale-95 transition-all">
+                      <Printer size={18}/> Imprimir Retrato
+                   </button>
+                </div>
+                <button onClick={() => navigate('/orders')} className="w-full bg-zinc-800 py-5 rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest text-zinc-500 hover:text-white transition-all">
+                   Finalizar e Voltar
                 </button>
-              </div>
-              
-              <button onClick={() => navigate('/orders')} className="w-full bg-zinc-800 py-5 rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest text-zinc-500 hover:text-white transition-all">
-                Finalizar e Voltar ao Histórico
-              </button>
-            </div>
+             </div>
           </div>
         )}
       </div>
 
-      {/* Estilos de Impressão específicos */}
       <style>{`
         @media print {
-          body * {
-            visibility: hidden;
-          }
-          #print-area, #print-area * {
+          body * { visibility: hidden; }
+          #root, #root * { visibility: hidden; }
+          .print\\:hidden { display: none !important; }
+          div[ref] {
             visibility: visible;
-          }
-          #print-area {
             position: absolute;
             left: 0;
             top: 0;
             width: 100%;
-            height: 100%;
-            padding: 20px;
-            box-shadow: none !important;
-            border: none !important;
-          }
-          @page {
-            size: portrait;
             margin: 0;
+            padding: 0;
           }
+          @page { size: portrait; margin: 0; }
         }
       `}</style>
     </div>
