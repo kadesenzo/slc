@@ -20,15 +20,22 @@
             padding: 0;
             overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: contain; /* Previne o bounce effect indesejado */
         }
         .active-glow { box-shadow: 0 0 20px rgba(225, 29, 72, 0.3); }
         .glow-red { box-shadow: 0 4px 15px rgba(225, 29, 72, 0.2); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         * { scroll-behavior: smooth; }
         
-        /* Ajuste para garantir que o conteúdo não seja cortado por safe areas de iPhones */
         main {
             padding-bottom: env(safe-area-inset-bottom);
+            -webkit-overflow-scrolling: touch; /* Melhora scroll no iOS */
+        }
+
+        /* Animações suaves */
+        .animate-in {
+            animation-duration: 400ms;
+            animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         }
     </style>
 <script type="importmap">

@@ -120,7 +120,6 @@ export interface ServiceOrder {
   updatedAt: string;
 }
 
-// Added missing VehicleChecklist interface to support MechanicTerminal view
 export interface VehicleChecklist {
   fuelLevel: string;
   damages: string[];
@@ -128,7 +127,6 @@ export interface VehicleChecklist {
   observations: string;
 }
 
-// Added missing Appointment interface to support Calendar view
 export interface Appointment {
   id: string;
   clientId: string;
