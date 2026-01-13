@@ -40,7 +40,13 @@ const ServiceOrders: React.FC<{ role?: string; session?: UserSession; syncData?:
 
   const downloadInvoice = async (os: ServiceOrder) => {
     if (!invoiceRef.current) return;
-    const canvas = await html2canvas(invoiceRef.current, { scale: 3, backgroundColor: '#ffffff' });
+    const canvas = await html2canvas(invoiceRef.current, { 
+      scale: 2, 
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      logging: false,
+      scrollY: -window.scrollY
+    });
     const link = document.createElement('a');
     link.download = `Nota_${os.osNumber}.png`;
     link.href = canvas.toDataURL('image/png');
@@ -117,56 +123,56 @@ const ServiceOrders: React.FC<{ role?: string; session?: UserSession; syncData?:
         ))}
       </div>
 
-      {/* MODAL DE VISUALIZAÇÃO DA NOTA */}
+      {/* MODAL DE VISUALIZAÇÃO DA NOTA COM SUPORTE A SCROLL PARA CONTEÚDO GRANDE */}
       {selectedOrder && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md overflow-y-auto no-scrollbar print:p-0 print:bg-white">
-           <div className="w-full max-w-[500px] flex flex-col items-center gap-6 my-10 print:my-0">
-             <button onClick={() => setSelectedOrder(null)} className="absolute top-8 right-8 text-zinc-500 hover:text-white print:hidden"><X size={32}/></button>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-0 sm:p-4 bg-black/95 backdrop-blur-md overflow-y-auto no-scrollbar print:p-0 print:bg-white">
+           <div className="w-full max-w-[500px] flex flex-col items-center gap-6 my-4 sm:my-10 print:my-0">
+             <button onClick={() => setSelectedOrder(null)} className="fixed top-6 right-6 sm:top-8 sm:right-8 text-white bg-zinc-900/50 p-2 rounded-full hover:bg-zinc-800 print:hidden z-[210]"><X size={28}/></button>
              
-             {/* A NOTA (MESMO VISUAL DO NEWSERVICEORDER) */}
+             {/* A NOTA EM SI */}
              <div 
                ref={invoiceRef}
-               className="w-full bg-white text-zinc-900 p-10 flex flex-col rounded-sm shadow-2xl print:shadow-none"
+               className="w-full bg-white text-zinc-900 p-6 sm:p-10 flex flex-col min-h-[700px] h-auto rounded-sm shadow-2xl print:shadow-none print:p-8"
              >
                 <div className="flex justify-between items-start mb-10">
                   <div className="flex gap-4">
-                    <div className="w-14 h-14 bg-black rounded-lg flex items-center justify-center text-white"><Wrench size={32} /></div>
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-black rounded-lg flex items-center justify-center text-white"><Wrench size={28} /></div>
                     <div>
-                      <h1 className="text-2xl font-black tracking-tighter uppercase leading-none mb-1">KAEN MECÂNICA</h1>
-                      <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Rua Joaquim Marques Alves, 765</p>
+                      <h1 className="text-xl sm:text-2xl font-black tracking-tighter uppercase leading-none mb-1">KAEN MECÂNICA</h1>
+                      <p className="text-[8px] sm:text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Rua Joaquim Marques Alves, 765</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-[8px] font-black text-zinc-300 uppercase mb-1">OS Nº</p>
-                    <p className="text-2xl font-black leading-none mb-1">{selectedOrder.osNumber}</p>
-                    <p className="text-[9px] font-bold text-zinc-400">{new Date(selectedOrder.createdAt).toLocaleDateString('pt-BR')}</p>
+                    <p className="text-[7px] sm:text-[8px] font-black text-zinc-300 uppercase mb-1">OS Nº</p>
+                    <p className="text-xl sm:text-2xl font-black leading-none mb-1">{selectedOrder.osNumber}</p>
+                    <p className="text-[8px] sm:text-[9px] font-bold text-zinc-400">{new Date(selectedOrder.createdAt).toLocaleDateString('pt-BR')}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-10">
                   <div className="bg-[#F8F8F8] p-5 rounded-2xl border border-zinc-100">
-                    <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest mb-2">PROPRIETÁRIO</p>
-                    <p className="text-base font-black uppercase italic leading-none">{selectedOrder.clientName}</p>
+                    <p className="text-[6px] sm:text-[7px] font-black text-zinc-400 uppercase tracking-widest mb-2">PROPRIETÁRIO</p>
+                    <p className="text-sm sm:text-base font-black uppercase italic leading-none">{selectedOrder.clientName}</p>
                   </div>
                   <div className="bg-[#F8F8F8] p-5 rounded-2xl border border-zinc-100">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between flex-wrap gap-2">
                        <div>
-                        <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest mb-2">VEÍCULO</p>
-                        <p className="text-base font-black uppercase italic leading-none">{selectedOrder.vehiclePlate}</p>
-                        <p className="text-[9px] font-bold text-zinc-400 mt-1 uppercase">{selectedOrder.vehicleModel}</p>
+                        <p className="text-[6px] sm:text-[7px] font-black text-zinc-400 uppercase tracking-widest mb-2">VEÍCULO</p>
+                        <p className="text-sm sm:text-base font-black uppercase italic leading-none">{selectedOrder.vehiclePlate}</p>
+                        <p className="text-[8px] sm:text-[9px] font-bold text-zinc-400 mt-1 uppercase truncate max-w-[100px]">{selectedOrder.vehicleModel}</p>
                        </div>
                        <div className="text-right">
-                        <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest mb-2">KM ATUAL</p>
-                        <p className="text-base font-black uppercase italic leading-none">{selectedOrder.vehicleKm || '0'} km</p>
+                        <p className="text-[6px] sm:text-[7px] font-black text-zinc-400 uppercase tracking-widest mb-2">KM ATUAL</p>
+                        <p className="text-sm sm:text-base font-black uppercase italic leading-none">{selectedOrder.vehicleKm || '0'} km</p>
                        </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex-1">
-                   <table className="w-full text-left text-[11px]">
+                   <table className="w-full text-left text-[10px] sm:text-[11px] border-collapse">
                       <thead>
-                        <tr className="text-[8px] font-black text-zinc-300 uppercase tracking-widest border-b border-zinc-50">
+                        <tr className="text-[7px] sm:text-[8px] font-black text-zinc-300 uppercase tracking-widest border-b border-zinc-50">
                           <th className="pb-4">DESCRIÇÃO</th>
                           <th className="pb-4 text-center">QTD</th>
                           <th className="pb-4 text-right">TOTAL</th>
@@ -174,14 +180,14 @@ const ServiceOrders: React.FC<{ role?: string; session?: UserSession; syncData?:
                       </thead>
                       <tbody className="divide-y divide-zinc-50 text-zinc-800 font-bold">
                         {selectedOrder.items.map((i,idx)=>(
-                          <tr key={idx}>
-                            <td className="py-4 uppercase italic">{i.description}</td>
+                          <tr key={idx} className="break-inside-avoid">
+                            <td className="py-4 uppercase italic leading-tight pr-2">{i.description}</td>
                             <td className="py-4 text-center">{i.quantity.toString().padStart(2, '0')}</td>
                             <td className="py-4 text-right font-black">R$ {(i.quantity*i.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                           </tr>
                         ))}
                         {selectedOrder.laborValue > 0 && (
-                          <tr>
+                          <tr className="break-inside-avoid">
                             <td className="py-4 uppercase italic">Mão de Obra Especializada</td>
                             <td className="py-4 text-center">01</td>
                             <td className="py-4 text-right font-black">R$ {selectedOrder.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
@@ -191,27 +197,27 @@ const ServiceOrders: React.FC<{ role?: string; session?: UserSession; syncData?:
                    </table>
                 </div>
 
-                <div className="mt-10 pt-10 border-t border-zinc-100 flex justify-between items-end">
-                   <div className={`px-4 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest ${selectedOrder.paymentStatus === PaymentStatus.PAGO ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
+                <div className="mt-8 pt-8 border-t border-zinc-100 flex justify-between items-end gap-4 break-inside-avoid">
+                   <div className={`px-4 py-1.5 rounded-full border text-[8px] sm:text-[9px] font-black uppercase tracking-widest ${selectedOrder.paymentStatus === PaymentStatus.PAGO ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
                       PAGAMENTO: {selectedOrder.paymentStatus}
                    </div>
-                   <div className="bg-[#F5F5F5] px-10 py-6 rounded-3xl flex flex-col items-end">
-                    <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1 italic">Total da Nota</p>
-                    <p className="text-2xl font-black text-zinc-900 leading-none italic">R$ {selectedOrder.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                   <div className="bg-[#F5F5F5] px-6 sm:px-10 py-4 sm:py-6 rounded-3xl flex flex-col items-end min-w-[150px] sm:min-w-[200px]">
+                    <p className="text-[7px] sm:text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1 italic">Total da Nota</p>
+                    <p className="text-xl sm:text-2xl font-black text-zinc-900 leading-none italic">R$ {selectedOrder.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                   </div>
                 </div>
              </div>
 
              {/* Ações Modal */}
-             <div className="w-full space-y-4 print:hidden px-4">
-                <button onClick={() => shareWhatsApp(selectedOrder)} className="w-full bg-[#25D366] py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3">
+             <div className="w-full space-y-4 print:hidden px-4 mb-10">
+                <button onClick={() => shareWhatsApp(selectedOrder)} className="w-full bg-[#25D366] py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 active:scale-95 shadow-xl">
                   <MessageCircle size={20}/> Compartilhar WhatsApp
                 </button>
                 <div className="grid grid-cols-2 gap-3">
-                   <button onClick={() => downloadInvoice(selectedOrder)} className="bg-zinc-900 py-5 rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 border border-zinc-800">
+                   <button onClick={() => downloadInvoice(selectedOrder)} className="bg-zinc-900 py-5 rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 border border-zinc-800 shadow-lg active:scale-95 transition-all">
                       <ImageIcon size={18}/> Salvar Imagem
                    </button>
-                   <button onClick={() => window.print()} className="bg-zinc-900 py-5 rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 border border-zinc-800">
+                   <button onClick={() => window.print()} className="bg-zinc-900 py-5 rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 border border-zinc-800 shadow-lg active:scale-95 transition-all">
                       <Printer size={18}/> Imprimir
                    </button>
                 </div>
@@ -225,13 +231,16 @@ const ServiceOrders: React.FC<{ role?: string; session?: UserSession; syncData?:
           body * { visibility: hidden; }
           .print\\:hidden { display: none !important; }
           div[ref] {
-            visibility: visible;
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
+            visibility: visible !important;
+            position: relative !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 20mm !important;
           }
           @page { size: portrait; margin: 0; }
+          .break-inside-avoid {
+            page-break-inside: avoid;
+          }
         }
       `}</style>
     </div>
