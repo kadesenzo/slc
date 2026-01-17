@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Plus, Search, FileText, Trash2, Edit3, X, Eye, 
-  Printer, MessageCircle, Wrench, ImageIcon
+  Printer, MessageCircle, Wrench, ImageIcon, ChevronRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ServiceOrder, UserSession, OSStatus, PaymentStatus } from '../types';
@@ -37,7 +37,7 @@ const ServiceOrders: React.FC<{ role?: string; session?: UserSession; syncData?:
 
   const downloadImage = async () => {
     if (!invoiceRef.current) return;
-    const canvas = await html2canvas(invoiceRef.current, { scale: 2, backgroundColor: '#ffffff' });
+    const canvas = await html2canvas(invoiceRef.current, { scale: 3, backgroundColor: '#ffffff', windowWidth: 800 });
     const link = document.createElement('a');
     link.download = `Registry_${selectedOrder?.osNumber}.png`;
     link.href = canvas.toDataURL('image/png');
@@ -49,6 +49,13 @@ const ServiceOrders: React.FC<{ role?: string; session?: UserSession; syncData?:
     o.vehiclePlate.includes(searchTerm.toUpperCase()) || 
     o.osNumber.includes(searchTerm.toUpperCase())
   ).reverse();
+
+  // Escala dinâmica para o modal
+  const getScaleStyles = (count: number) => {
+    const fontSize = count > 10 ? 'text-[9px]' : 'text-[11px]';
+    const padding = count > 10 ? 'py-2' : 'py-4';
+    return { fontSize, padding };
+  };
 
   return (
     <div className="animate-ios-slide space-y-8 p-6 md:p-12 pb-32 h-full overflow-y-auto no-scrollbar scroll-smooth">
@@ -114,7 +121,7 @@ const ServiceOrders: React.FC<{ role?: string; session?: UserSession; syncData?:
         ))}
       </div>
 
-      {/* MODAL DE VISUALIZAÇÃO COM DESIGN PREMIUM */}
+      {/* MODAL DE VISUALIZAÇÃO COM DESIGN PREMIUM BIONIC SQUARE */}
       {selectedOrder && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-0 sm:p-8 bg-black/90 backdrop-blur-2xl overflow-y-auto no-scrollbar print:p-0 print:bg-white animate-in fade-in duration-500">
           <div className="w-full max-w-[900px] flex flex-col items-center gap-8 my-12 print:my-0">
@@ -125,51 +132,54 @@ const ServiceOrders: React.FC<{ role?: string; session?: UserSession; syncData?:
               <X size={28}/>
              </button>
              
-             {/* TEMPLATE KAEN MECÂNICA - BIONIC VERSION */}
+             {/* TEMPLATE KAEN MECÂNICA - BIONIC SQUARE VERSION */}
              <div 
               ref={invoiceRef} 
-              className="w-full bg-white text-zinc-900 p-10 sm:p-16 flex flex-col min-h-[1100px] h-auto rounded-[3.5rem] print:p-10 print:min-h-0 shadow-[0_40px_100px_rgba(0,0,0,0.5)]"
+              className="w-full max-w-[550px] bg-white text-zinc-900 p-10 flex flex-col rounded-[3.5rem] print:p-8 print:max-w-none print:rounded-none shadow-[0_40px_100px_rgba(0,0,0,0.5)] print:shadow-none"
+              style={{ 
+                minHeight: selectedOrder.items.length > 8 ? 'auto' : '550px',
+                aspectRatio: selectedOrder.items.length < 8 ? '1 / 1' : 'auto'
+              }}
              >
-                <div className="flex justify-between items-start mb-16">
-                   <div className="flex gap-6">
-                      <div className="w-20 h-20 bg-black rounded-[2rem] flex items-center justify-center text-white shrink-0 shadow-2xl">
-                        <Wrench size={40} />
+                <div className="flex justify-between items-start mb-12">
+                   <div className="flex gap-4">
+                      <div className="w-14 h-14 bg-black rounded-[1.8rem] flex items-center justify-center text-white shrink-0 shadow-xl">
+                        <Wrench size={32} />
                       </div>
                       <div>
-                         <h1 className="text-3xl font-black tracking-tighter uppercase leading-none mb-2">KAEN MECÂNICA</h1>
-                         <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.3em]">BIONIC REPAIR DIVISION • SINCE 2024</p>
-                         <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1 italic">Marques Alves, 765</p>
+                         <h1 className="text-2xl font-black tracking-tighter uppercase leading-none mb-1">KAEN MECÂNICA</h1>
+                         <p className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest">Precision Division • Marques Alves, 765</p>
                       </div>
                    </div>
                    <div className="text-right">
-                      <p className="text-[10px] font-black text-zinc-300 uppercase mb-2 tracking-[0.4em]">REGISTRY ID</p>
-                      <p className="text-4xl font-black leading-none mb-2 italic tracking-tighter">#{selectedOrder.osNumber}</p>
-                      <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest">{new Date(selectedOrder.createdAt).toLocaleDateString('pt-BR')}</p>
+                      <p className="text-[8px] font-black text-zinc-200 uppercase mb-1 tracking-[0.2em]">ID REGISTRY</p>
+                      <p className="text-3xl font-black leading-none mb-1 italic tracking-tighter">#{selectedOrder.osNumber}</p>
+                      <p className="text-[10px] font-bold text-zinc-400 uppercase">{new Date(selectedOrder.createdAt).toLocaleDateString('pt-BR')}</p>
                    </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-8 mb-16">
-                   <div className="bg-[#fcfcfc] p-8 rounded-[2.5rem] border border-zinc-100 shadow-sm">
-                      <p className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.4em] mb-4">CITIZEN / OWNER</p>
-                      <p className="text-2xl font-black uppercase italic leading-none">{selectedOrder.clientName}</p>
+                <div className="grid grid-cols-2 gap-4 mb-12">
+                   <div className="bg-[#fcfcfc] p-6 rounded-[2.2rem] border border-zinc-100">
+                      <p className="text-[7px] font-black text-zinc-300 uppercase tracking-[0.3em] mb-2">CITIZEN OWNER</p>
+                      <p className="text-lg font-black uppercase italic leading-none">{selectedOrder.clientName}</p>
                    </div>
-                   <div className="bg-[#fcfcfc] p-8 rounded-[2.5rem] border border-zinc-100 shadow-sm flex justify-between">
+                   <div className="bg-[#fcfcfc] p-6 rounded-[2.2rem] border border-zinc-100 flex justify-between">
                       <div>
-                         <p className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.4em] mb-4">UNIT TELEMETRY</p>
-                         <p className="text-2xl font-black uppercase italic leading-none">{selectedOrder.vehiclePlate}</p>
-                         <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mt-1">{selectedOrder.vehicleModel}</p>
+                         <p className="text-[7px] font-black text-zinc-300 uppercase tracking-[0.3em] mb-2">UNIT PLATE</p>
+                         <p className="text-lg font-black uppercase italic leading-none">{selectedOrder.vehiclePlate}</p>
+                         <p className="text-[10px] font-bold text-zinc-400 uppercase truncate">{selectedOrder.vehicleModel}</p>
                       </div>
                       <div className="text-right">
-                         <p className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.4em] mb-4">TOTAL MILEAGE</p>
-                         <p className="text-2xl font-black uppercase italic leading-none">{selectedOrder.vehicleKm || '0'} <span className="text-zinc-300">KM</span></p>
+                         <p className="text-[7px] font-black text-zinc-300 uppercase tracking-[0.3em] mb-2">TELEMETRY</p>
+                         <p className="text-lg font-black uppercase italic leading-none">{selectedOrder.vehicleKm || '0'} <span className="text-[9px] text-zinc-300">KM</span></p>
                       </div>
                    </div>
                 </div>
 
                 <div className="flex-1">
-                   <table className="w-full text-left text-[12px]">
+                   <table className="w-full text-left text-[11px]">
                       <thead>
-                         <tr className="text-[9px] font-black text-zinc-300 uppercase tracking-[0.4em] border-b border-zinc-100">
+                         <tr className="text-[8px] font-black text-zinc-200 uppercase tracking-[0.4em] border-b border-zinc-100">
                             <th className="pb-6">TASK / COMPONENT DESCRIPTION</th>
                             <th className="pb-6 text-center">QTY</th>
                             <th className="pb-6 text-right">TOTAL CREDIT</th>
@@ -178,16 +188,16 @@ const ServiceOrders: React.FC<{ role?: string; session?: UserSession; syncData?:
                       <tbody className="divide-y divide-zinc-50 font-bold text-zinc-800">
                          {selectedOrder.items.map((i, idx) => (
                             <tr key={idx} className="break-inside-avoid">
-                               <td className="py-6 uppercase italic leading-tight pr-6">{i.description}</td>
-                               <td className="py-6 text-center">{i.quantity.toString().padStart(2, '0')}</td>
-                               <td className="py-6 text-right font-black">R$ {(i.quantity * i.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                               <td className={`${getScaleStyles(selectedOrder.items.length).fontSize} ${getScaleStyles(selectedOrder.items.length).padding} uppercase italic leading-tight pr-6`}>{i.description}</td>
+                               <td className={`${getScaleStyles(selectedOrder.items.length).fontSize} ${getScaleStyles(selectedOrder.items.length).padding} text-center`}>{i.quantity.toString().padStart(2, '0')}</td>
+                               <td className={`${getScaleStyles(selectedOrder.items.length).fontSize} ${getScaleStyles(selectedOrder.items.length).padding} text-right font-black`}>R$ {(i.quantity * i.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                             </tr>
                          ))}
                          {selectedOrder.laborValue > 0 && (
                             <tr className="break-inside-avoid">
-                               <td className="py-6 uppercase italic font-black">SPECIALIZED TECHNICAL LABOR</td>
-                               <td className="py-6 text-center">01</td>
-                               <td className="py-6 text-right font-black">R$ {selectedOrder.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                               <td className={`${getScaleStyles(selectedOrder.items.length).fontSize} ${getScaleStyles(selectedOrder.items.length).padding} uppercase italic font-black`}>SPECIALIZED TECHNICAL LABOR</td>
+                               <td className={`${getScaleStyles(selectedOrder.items.length).fontSize} ${getScaleStyles(selectedOrder.items.length).padding} text-center`}>01</td>
+                               <td className={`${getScaleStyles(selectedOrder.items.length).fontSize} ${getScaleStyles(selectedOrder.items.length).padding} text-right font-black`}>R$ {selectedOrder.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                             </tr>
                          )}
                       </tbody>
@@ -210,20 +220,20 @@ const ServiceOrders: React.FC<{ role?: string; session?: UserSession; syncData?:
                 </div>
                 
                 <div className="mt-16 text-center">
-                   <p className="text-[9px] font-black text-zinc-200 uppercase tracking-[1em] italic">PRECISION REPAIR • GUARANTEED PERFORMANCE</p>
+                   <p className="text-[9px] font-black text-zinc-100 uppercase tracking-[1em] italic">PRECISION REPAIR • GUARANTEED PERFORMANCE</p>
                 </div>
              </div>
 
              <div className="w-full max-w-[600px] grid grid-cols-2 gap-4 print:hidden px-4 mb-20">
                 <button 
                   onClick={() => downloadImage()} 
-                  className="glass-card py-6 rounded-[2rem] font-black uppercase text-[11px] tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-white/10 active:scale-95 transition-all"
+                  className="glass-card py-6 rounded-ios font-black uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-white/10 active:scale-95 transition-all"
                 >
-                   <ImageIcon size={22} className="text-[#FF2D55]"/> Encrypt Image
+                   <ImageIcon size={22} className="text-[#FF2D55]"/> Bionic Image
                 </button>
                 <button 
                   onClick={() => handlePrint()} 
-                  className="glass-card py-6 rounded-[2rem] font-black uppercase text-[11px] tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-white/10 active:scale-95 transition-all"
+                  className="glass-card py-6 rounded-ios font-black uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-white/10 active:scale-95 transition-all"
                 >
                    <Printer size={22} className="text-[#FF2D55]"/> Neural Print
                 </button>
@@ -231,6 +241,25 @@ const ServiceOrders: React.FC<{ role?: string; session?: UserSession; syncData?:
           </div>
         </div>
       )}
+
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          .print\\:hidden { display: none !important; }
+          div[ref] {
+            visibility: visible !important;
+            position: relative !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 25mm !important;
+            aspect-ratio: auto !important;
+            min-height: 0 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+          }
+          @page { size: portrait; margin: 0; }
+        }
+      `}</style>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
-  Plus, Trash2, Wrench, ChevronLeft, X,
+  Plus, Trash2, Wrench, ChevronLeft, ChevronRight, X,
   User, Car, Search, Loader2, Download, 
   Printer, Save, MessageCircle, Check, ImageIcon
 } from 'lucide-react';
@@ -25,7 +25,6 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
   const [labor, setLabor] = useState<string>('0');
   const [discount, setDiscount] = useState<string>('0');
   const [obs, setObs] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.PIX);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(PaymentStatus.PENDENTE);
   
   const [finalOs, setFinalOs] = useState<ServiceOrder | null>(null);
@@ -100,8 +99,6 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
         totalValue,
         status: OSStatus.FINALIZADO,
         paymentStatus,
-        paymentMethod,
-        observations: obs,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -121,19 +118,16 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
   const downloadImage = async () => {
     if (!invoiceRef.current) return;
     const canvas = await html2canvas(invoiceRef.current, { 
-      scale: 2, 
+      scale: 3, 
       backgroundColor: '#ffffff',
       logging: false,
-      useCORS: true
+      useCORS: true,
+      windowWidth: 800
     });
     const link = document.createElement('a');
-    link.download = `Nota_${finalOs?.osNumber}.png`;
+    link.download = `Registry_${finalOs?.osNumber}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
-  };
-
-  const handlePrint = () => {
-    window.print();
   };
 
   const handleWhatsApp = () => {
@@ -142,223 +136,271 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
+  // Lógica de Escala Dinâmica
+  const itemFontSize = items.length > 10 ? 'text-[9px]' : 'text-[11px]';
+  const itemPadding = items.length > 10 ? 'py-2' : 'py-4';
+
   return (
-    <div className="flex flex-col h-full bg-[#0B0B0B] text-white">
-      {/* Header Fixo */}
-      <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-[#0B0B0B] z-20 print:hidden">
-        <button onClick={() => navigate(-1)} className="p-2 bg-zinc-900 rounded-xl text-zinc-400">
+    <div className="flex flex-col h-full bg-[#000000] text-white">
+      {/* Header Mobile Bionic */}
+      <div className="p-6 border-b border-white/5 flex items-center justify-between glass-card sticky top-0 z-50 print:hidden">
+        <button onClick={() => navigate(-1)} className="p-3 bg-white/5 rounded-full text-zinc-400 active:scale-90 transition-transform">
           <ChevronLeft size={20} />
         </button>
-        <h2 className="text-sm font-black uppercase tracking-widest italic">Nova <span className="text-[#E11D48]">Nota Pro</span></h2>
+        <h2 className="text-[10px] font-black uppercase tracking-[0.4em] italic">Nova <span className="text-[#FF2D55]">Nota Bionic</span></h2>
         <div className="w-10"></div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 no-scrollbar print:p-0 print:overflow-visible">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-8 no-scrollbar print:p-0 print:overflow-visible scroll-smooth">
         {step !== 'FINAL' ? (
-          <div className="max-w-xl mx-auto space-y-8 animate-in slide-in-from-bottom duration-300">
-            {/* Form Steps */}
-            <div className="bg-zinc-900/50 p-6 rounded-[2rem] border border-zinc-800 space-y-6 shadow-xl">
-               <h3 className="text-[10px] font-black uppercase text-zinc-500 tracking-widest italic">1. Identificação</h3>
+          <div className="max-w-xl mx-auto space-y-8 animate-ios-slide pb-32">
+            {/* Step 1: Identity */}
+            <div className="glass-card p-8 rounded-ios border border-white/10 space-y-6 shadow-2xl">
+               <div className="flex items-center gap-3">
+                 <div className="w-8 h-8 bg-[#FF2D55]/10 rounded-full flex items-center justify-center text-[#FF2D55]"><User size={16}/></div>
+                 <h3 className="text-[10px] font-black uppercase text-zinc-500 tracking-[0.3em] italic">Unit Registry</h3>
+               </div>
+               
                {!selectedClient ? (
-                  <div className="relative">
-                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600" size={18} />
+                  <div className="relative group">
+                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-[#FF2D55] transition-colors" size={20} />
                     <input 
                       type="text" value={clientSearch} onChange={(e) => setClientSearch(e.target.value)}
-                      placeholder="Pesquisar Cliente..."
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl py-5 pl-14 pr-6 text-sm font-bold outline-none focus:border-[#E11D48]"
+                      placeholder="Search Client Name..."
+                      className="w-full bg-black/40 border border-white/5 rounded-full py-6 pl-16 pr-8 text-sm font-bold outline-none focus:border-[#FF2D55]/50 transition-all placeholder-zinc-800"
                     />
                     {filteredClients.length > 0 && (
-                       <div className="mt-2 space-y-1">
+                       <div className="mt-4 space-y-2 max-h-60 overflow-y-auto no-scrollbar animate-in fade-in slide-in-from-top-4">
                          {filteredClients.map(c => (
-                           <button key={c.id} onClick={() => setSelectedClient(c)} className="w-full p-4 bg-zinc-950 rounded-xl flex items-center justify-between border border-zinc-800">
-                             <span className="text-xs font-black uppercase">{c.name}</span>
-                             <Plus size={14} className="text-[#E11D48]" />
+                           <button key={c.id} onClick={() => setSelectedClient(c)} className="w-full p-5 bg-white/5 hover:bg-[#FF2D55] rounded-3xl flex items-center justify-between border border-white/5 transition-all group">
+                             <span className="text-xs font-black uppercase italic group-hover:text-white">{c.name}</span>
+                             <Plus size={16} className="text-[#FF2D55] group-hover:text-white" />
                            </button>
                          ))}
                        </div>
                     )}
                   </div>
                ) : (
-                  <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
-                    <span className="text-xs font-black uppercase italic text-[#E11D48]">{selectedClient.name}</span>
-                    <button onClick={() => {setSelectedClient(null); setSelectedVehicle(null);}}><X size={18}/></button>
+                  <div className="bg-white/5 p-6 rounded-[2rem] border border-[#FF2D55]/20 flex justify-between items-center animate-in zoom-in">
+                    <div className="flex flex-col">
+                      <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1">Active Owner</span>
+                      <span className="text-sm font-black uppercase italic text-white">{selectedClient.name}</span>
+                    </div>
+                    <button onClick={() => {setSelectedClient(null); setSelectedVehicle(null);}} className="p-2 bg-white/5 rounded-full text-zinc-500 hover:text-white"><X size={20}/></button>
                   </div>
                )}
 
                {selectedClient && !selectedVehicle && (
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 animate-in slide-in-from-bottom-4">
                     {clientVehicles.map(v => (
-                      <button key={v.id} onClick={() => setSelectedVehicle(v)} className="p-4 bg-zinc-950 border border-zinc-800 rounded-xl text-[10px] font-black uppercase hover:border-[#E11D48]">
-                        {v.plate}
+                      <button key={v.id} onClick={() => setSelectedVehicle(v)} className="p-6 bg-white/5 border border-white/5 rounded-3xl text-left hover:border-[#FF2D55]/50 transition-all group">
+                        <div className="flex items-center justify-between">
+                          <div className="flex flex-col">
+                            <span className="text-lg font-black text-white group-hover:text-[#FF2D55] transition-colors">{v.plate}</span>
+                            <span className="text-[10px] font-bold text-zinc-500 uppercase">{v.model}</span>
+                          </div>
+                          {/* Fixed: ChevronRight added to imports from lucide-react */}
+                          <ChevronRight size={18} className="text-zinc-700"/>
+                        </div>
                       </button>
                     ))}
                   </div>
                )}
 
                {selectedVehicle && (
-                 <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800 flex justify-between items-center">
-                    <span className="text-xs font-black uppercase italic text-zinc-400">{selectedVehicle.plate} • {selectedVehicle.model}</span>
-                    <button onClick={() => setSelectedVehicle(null)}><X size={16}/></button>
+                 <div className="bg-white/5 p-6 rounded-[2rem] border border-white/5 flex justify-between items-center animate-in zoom-in">
+                    <div className="flex flex-col">
+                      <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1">Target Vehicle</span>
+                      <span className="text-sm font-black uppercase italic text-[#FF2D55]">{selectedVehicle.plate} • {selectedVehicle.model}</span>
+                    </div>
+                    <button onClick={() => setSelectedVehicle(null)} className="p-2 bg-white/5 rounded-full text-zinc-500 hover:text-white"><X size={18}/></button>
                  </div>
                )}
             </div>
 
+            {/* Step 2: Items */}
             {selectedVehicle && (
-               <div className="bg-zinc-900/50 p-6 rounded-[2rem] border border-zinc-800 space-y-6 shadow-xl">
+               <div className="glass-card p-8 rounded-ios border border-white/10 space-y-8 shadow-2xl animate-in slide-in-from-bottom-10">
                   <div className="flex justify-between items-center">
-                    <h3 className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">2. Itens</h3>
-                    <button onClick={addItem} className="p-2 bg-[#E11D48] rounded-lg text-white"><Plus size={16}/></button>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-[#FF2D55]/10 rounded-full flex items-center justify-center text-[#FF2D55]"><Wrench size={16}/></div>
+                      <h3 className="text-[10px] font-black uppercase text-zinc-500 tracking-[0.3em] italic">Telemetry Data</h3>
+                    </div>
+                    <button onClick={addItem} className="p-4 bg-[#FF2D55] rounded-2xl text-white shadow-lg active:scale-90 transition-transform"><Plus size={20}/></button>
                   </div>
-                  <div className="space-y-3">
+                  
+                  <div className="space-y-4">
                     {items.map(item => (
-                      <div key={item.id} className="bg-zinc-950 p-4 rounded-xl border border-zinc-800 space-y-3">
-                        <input type="text" placeholder="Descrição..." value={item.description} onChange={(e)=>updateItem(item.id, 'description', e.target.value.toUpperCase())} className="w-full bg-transparent text-[11px] font-black outline-none uppercase italic"/>
-                        <div className="flex gap-2">
-                           <input type="number" placeholder="Qtd" value={item.quantity} onChange={(e)=>updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)} className="w-16 bg-zinc-900 p-2 rounded-lg text-xs font-bold text-center"/>
-                           <input type="number" placeholder="R$" value={item.unitPrice} onChange={(e)=>updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)} className="flex-1 bg-zinc-900 p-2 rounded-lg text-xs font-bold"/>
-                           <button onClick={()=>removeItem(item.id)} className="text-red-500"><Trash2 size={16}/></button>
+                      <div key={item.id} className="bg-black/40 p-5 rounded-3xl border border-white/5 space-y-4 hover:border-white/10 transition-all">
+                        <input 
+                          type="text" placeholder="Component Description..." 
+                          value={item.description} 
+                          onChange={(e)=>updateItem(item.id, 'description', e.target.value.toUpperCase())} 
+                          className="w-full bg-transparent text-xs font-black outline-none uppercase italic text-white placeholder-zinc-800"
+                        />
+                        <div className="flex gap-4">
+                           <div className="flex-1 flex bg-black/60 p-1 rounded-2xl border border-white/5">
+                             <input type="number" placeholder="Qty" value={item.quantity} onChange={(e)=>updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)} className="w-full bg-transparent p-3 text-center text-xs font-black text-white outline-none"/>
+                           </div>
+                           <div className="flex-[2] flex bg-black/60 p-1 rounded-2xl border border-white/5">
+                             <span className="flex items-center pl-4 text-zinc-600 text-[10px] font-black italic">R$</span>
+                             <input type="number" placeholder="Price" value={item.unitPrice} onChange={(e)=>updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)} className="w-full bg-transparent p-3 text-xs font-black text-white outline-none"/>
+                           </div>
+                           <button onClick={()=>removeItem(item.id)} className="p-4 text-zinc-700 hover:text-[#FF2D55] transition-colors"><Trash2 size={20}/></button>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[8px] font-black uppercase text-zinc-600">Mão de Obra</label>
-                      <input type="number" value={labor} onChange={(e)=>setLabor(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 p-4 rounded-xl text-xs font-black"/>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <label className="text-[9px] font-black uppercase text-zinc-600 tracking-widest ml-2 italic">Labor Value</label>
+                      <input type="number" value={labor} onChange={(e)=>setLabor(e.target.value)} className="w-full bg-black/60 border border-white/5 p-5 rounded-3xl text-sm font-black outline-none focus:border-[#FF2D55]"/>
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-[8px] font-black uppercase text-zinc-600">Pagamento</label>
-                      <select value={paymentStatus} onChange={(e)=>setPaymentStatus(e.target.value as PaymentStatus)} className="w-full bg-zinc-950 border border-zinc-800 p-4 rounded-xl text-[10px] font-black uppercase">
-                        <option value={PaymentStatus.PENDENTE}>Pendente</option>
-                        <option value={PaymentStatus.PAGO}>Pago</option>
+                    <div className="space-y-3">
+                      <label className="text-[9px] font-black uppercase text-zinc-600 tracking-widest ml-2 italic">Pay Status</label>
+                      <select value={paymentStatus} onChange={(e)=>setPaymentStatus(e.target.value as PaymentStatus)} className="w-full bg-black/60 border border-white/5 p-5 rounded-3xl text-[10px] font-black uppercase outline-none focus:border-[#FF2D55]">
+                        <option value={PaymentStatus.PENDENTE}>Pending</option>
+                        <option value={PaymentStatus.PAGO}>Paid</option>
                       </select>
                     </div>
                   </div>
 
-                  <button onClick={handleFinalize} disabled={isSaving} className="w-full bg-[#E11D48] py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl flex items-center justify-center gap-3">
-                    {isSaving ? <Loader2 className="animate-spin"/> : <Check size={20}/>}
-                    Finalizar Nota
+                  <div className="p-8 bg-[#FF2D55]/5 rounded-[2.5rem] border border-[#FF2D55]/10 flex flex-col items-center gap-2">
+                    <span className="text-[9px] font-black uppercase text-zinc-500 tracking-[0.4em]">Final Valuation</span>
+                    <span className="text-4xl font-black text-white italic tracking-tighter">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+
+                  <button 
+                    onClick={handleFinalize} 
+                    disabled={isSaving} 
+                    className="w-full bg-[#FF2D55] py-7 rounded-ios font-black uppercase text-xs tracking-[0.3em] shadow-2xl shadow-[#FF2D55]/40 flex items-center justify-center gap-4 active:scale-95 transition-all"
+                  >
+                    {isSaving ? <Loader2 className="animate-spin"/> : <Check size={24}/>}
+                    Generate Bionic Registry
                   </button>
                </div>
             )}
           </div>
         ) : (
-          <div className="max-w-4xl mx-auto flex flex-col items-center gap-8 print:block print:max-w-none">
-             {/* PREVISUALIZAÇÃO DA NOTA COM SCROLL SE FOR GRANDE */}
-             <div className="w-full max-w-[800px] overflow-x-auto no-scrollbar print:overflow-visible">
+          <div className="max-w-[800px] mx-auto flex flex-col items-center gap-10 print:block print:max-w-none pb-20">
+             {/* THE BIONIC SQUARE INVOICE */}
+             <div className="w-full overflow-x-auto no-scrollbar print:overflow-visible flex justify-center">
                <div 
                  ref={invoiceRef}
-                 className="w-full bg-white text-zinc-900 p-8 sm:p-12 flex flex-col min-h-[1100px] h-auto rounded-lg shadow-2xl print:shadow-none print:p-10 print:min-h-0 print:h-auto"
+                 className="w-full max-w-[550px] bg-white text-zinc-900 p-10 flex flex-col rounded-[3.5rem] shadow-2xl print:shadow-none print:p-8 print:max-w-none print:rounded-none"
+                 style={{ 
+                    minHeight: items.length > 8 ? 'auto' : '550px',
+                    aspectRatio: items.length < 8 ? '1 / 1' : 'auto'
+                 }}
                >
-                  {/* Cabeçalho Profissional */}
+                  {/* Bionic Header */}
                   <div className="flex justify-between items-start mb-12">
-                    <div className="flex gap-5">
-                      <div className="w-16 h-16 bg-black rounded-xl flex items-center justify-center text-white shrink-0">
-                        <Wrench size={36} />
+                    <div className="flex gap-4">
+                      <div className="w-14 h-14 bg-black rounded-[1.8rem] flex items-center justify-center text-white shrink-0 shadow-xl">
+                        <Wrench size={32} />
                       </div>
                       <div>
-                        <h1 className="text-2xl font-black tracking-tight uppercase leading-none mb-1">KAEN MECÂNICA</h1>
-                        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Rua Joaquim Marques Alves, 765</p>
+                        <h1 className="text-2xl font-black tracking-tighter uppercase leading-none mb-1">KAEN MECÂNICA</h1>
+                        <p className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest">Precision Division • Rua J. M. Alves, 765</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-[8px] font-black text-zinc-300 uppercase mb-1">OS Nº</p>
-                      <p className="text-3xl font-black leading-none mb-1">{finalOs.osNumber}</p>
-                      <p className="text-[10px] font-bold text-zinc-400">{new Date(finalOs.createdAt).toLocaleDateString('pt-BR')}</p>
+                      <p className="text-[8px] font-black text-zinc-200 uppercase mb-1 tracking-[0.2em]">ID REGISTRY</p>
+                      <p className="text-3xl font-black leading-none mb-1 italic tracking-tighter">#{finalOs.osNumber}</p>
+                      <p className="text-[10px] font-bold text-zinc-400 uppercase">{new Date(finalOs.createdAt).toLocaleDateString('pt-BR')}</p>
                     </div>
                   </div>
 
-                  {/* Blocos de Dados */}
-                  <div className="grid grid-cols-2 gap-6 mb-12">
-                    <div className="bg-[#f8f8f8] p-6 rounded-2xl border border-zinc-100">
-                      <p className="text-[7px] font-black text-zinc-300 uppercase tracking-widest mb-2">PROPRIETÁRIO</p>
-                      <p className="text-lg font-black uppercase italic leading-none mb-1">{finalOs.clientName}</p>
-                      <p className="text-[10px] font-bold text-zinc-400">{selectedClient?.phone}</p>
+                  {/* Owner & Unit Info */}
+                  <div className="grid grid-cols-2 gap-4 mb-12">
+                    <div className="bg-[#F9F9F9] p-6 rounded-[2.2rem] border border-zinc-50">
+                      <p className="text-[7px] font-black text-zinc-300 uppercase tracking-[0.3em] mb-2">CITIZEN OWNER</p>
+                      <p className="text-lg font-black uppercase italic leading-none truncate">{finalOs.clientName}</p>
+                      <p className="text-[10px] font-bold text-zinc-400 mt-1">{selectedClient?.phone}</p>
                     </div>
-                    <div className="bg-[#f8f8f8] p-6 rounded-2xl border border-zinc-100">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="text-[7px] font-black text-zinc-300 uppercase tracking-widest mb-2">VEÍCULO</p>
-                          <p className="text-lg font-black uppercase italic leading-none mb-1">{finalOs.vehiclePlate}</p>
-                          <p className="text-[10px] font-bold text-zinc-400 uppercase">{finalOs.vehicleModel}</p>
-                        </div>
-                        <div className="text-right">
-                           <p className="text-[7px] font-black text-zinc-300 uppercase tracking-widest mb-2">KM ATUAL</p>
-                           <p className="text-lg font-black uppercase italic leading-none">{finalOs.vehicleKm || '0'} km</p>
-                        </div>
+                    <div className="bg-[#F9F9F9] p-6 rounded-[2.2rem] border border-zinc-50">
+                      <div className="flex justify-between">
+                         <div>
+                          <p className="text-[7px] font-black text-zinc-300 uppercase tracking-[0.3em] mb-2">UNIT PLATE</p>
+                          <p className="text-lg font-black uppercase italic leading-none">{finalOs.vehiclePlate}</p>
+                          <p className="text-[9px] font-bold text-zinc-400 mt-1 uppercase truncate">{finalOs.vehicleModel}</p>
+                         </div>
+                         <div className="text-right">
+                          <p className="text-[7px] font-black text-zinc-300 uppercase tracking-[0.3em] mb-2">TELEMETRY</p>
+                          <p className="text-lg font-black uppercase italic leading-none">{finalOs.vehicleKm || '0'} <span className="text-[9px] text-zinc-300">KM</span></p>
+                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Tabela de Itens (Expansível) */}
-                  <div className="flex-1">
-                    <table className="w-full text-left text-[11px] border-collapse">
-                      <thead>
-                        <tr className="text-[8px] font-black text-zinc-300 uppercase tracking-widest border-b border-zinc-100">
-                          <th className="pb-4">DESCRIÇÃO DOS SERVIÇOS / PEÇAS</th>
-                          <th className="pb-4 text-center">QTD</th>
-                          <th className="pb-4 text-right">UNITÁRIO</th>
-                          <th className="pb-4 text-right">TOTAL</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-zinc-50 font-bold text-zinc-800">
-                        {finalOs.items.map((i, idx) => (
-                          <tr key={idx} className="break-inside-avoid">
-                            <td className="py-4 uppercase italic leading-tight pr-4">{i.description}</td>
-                            <td className="py-4 text-center font-black">{i.quantity.toString().padStart(2, '0')}</td>
-                            <td className="py-4 text-right text-zinc-300">R$ {i.unitPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                            <td className="py-4 text-right font-black">R$ {(i.quantity * i.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                  {/* Adaptive Data Table */}
+                  <div className="flex-1 mb-8">
+                     <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="text-[8px] font-black text-zinc-200 uppercase tracking-[0.4em] border-b border-zinc-50">
+                            <th className="pb-4">COMPONENT DESCRIPTION</th>
+                            <th className="pb-4 text-center">QTY</th>
+                            <th className="pb-4 text-right">VALUATION</th>
                           </tr>
-                        ))}
-                        {finalOs.laborValue > 0 && (
-                          <tr className="break-inside-avoid">
-                            <td className="py-4 uppercase italic font-black">Mão de Obra Especializada</td>
-                            <td className="py-4 text-center font-black">01</td>
-                            <td className="py-4 text-right text-zinc-300">R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                            <td className="py-4 text-right font-black">R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-50 text-zinc-800 font-bold">
+                          {finalOs.items.map((i,idx)=>(
+                            <tr key={idx} className="break-inside-avoid">
+                              <td className={`${itemFontSize} ${itemPadding} uppercase italic leading-tight pr-4`}>{i.description}</td>
+                              <td className={`${itemFontSize} ${itemPadding} text-center`}>{i.quantity.toString().padStart(2, '0')}</td>
+                              <td className={`${itemFontSize} ${itemPadding} text-right font-black`}>R$ {(i.quantity*i.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                            </tr>
+                          ))}
+                          {finalOs.laborValue > 0 && (
+                            <tr className="break-inside-avoid">
+                              <td className={`${itemFontSize} ${itemPadding} uppercase italic font-black`}>Specialized Technical Labor</td>
+                              <td className={`${itemFontSize} ${itemPadding} text-center`}>01</td>
+                              <td className={`${itemFontSize} ${itemPadding} text-right font-black`}>R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                            </tr>
+                          )}
+                        </tbody>
+                     </table>
                   </div>
 
-                  {/* Rodapé Dinâmico */}
-                  <div className="mt-12 pt-10 border-t-2 border-zinc-100 flex justify-between items-end gap-10 break-inside-avoid">
+                  {/* Bionic Footer */}
+                  <div className="pt-10 border-t-2 border-zinc-50 flex justify-between items-end gap-6 break-inside-avoid">
                     <div className="space-y-8 flex-1">
-                       <div className={`inline-flex px-5 py-2 rounded-full border-2 text-[10px] font-black uppercase tracking-widest ${finalOs.paymentStatus === PaymentStatus.PAGO ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
-                          PAGAMENTO: {finalOs.paymentStatus}
+                       <div className={`inline-flex px-5 py-2 rounded-full border-2 text-[9px] font-black uppercase tracking-[0.3em] ${finalOs.paymentStatus === PaymentStatus.PAGO ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
+                          STATUS: {finalOs.paymentStatus}
                        </div>
-                       <div className="w-64 pt-4 border-t border-zinc-200">
-                          <p className="text-[8px] font-black text-zinc-300 uppercase text-center tracking-widest">ASSINATURA DO RESPONSÁVEL</p>
+                       <div className="w-56 pt-4 border-t border-zinc-100">
+                          <p className="text-[8px] font-black text-zinc-200 uppercase text-center tracking-[0.5em]">AUTH SIGNATURE</p>
                        </div>
                     </div>
 
-                    <div className="bg-[#f5f5f5] px-12 py-8 rounded-[2.5rem] flex flex-col items-end min-w-[280px]">
-                      <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-2 italic">TOTAL DA NOTA</p>
-                      <p className="text-4xl font-black text-zinc-900 leading-none italic tracking-tighter">R$ {finalOs.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <div className="bg-[#f5f5f5] px-10 py-8 rounded-[2.5rem] flex flex-col items-end min-w-[240px] shadow-sm">
+                      <p className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-2 italic">VALUATION TOTAL</p>
+                      <p className="text-3xl font-black text-zinc-900 leading-none italic tracking-tighter">R$ {finalOs.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                     </div>
                   </div>
 
                   <div className="mt-12 text-center break-inside-avoid">
-                    <p className="text-[8px] font-black text-zinc-200 uppercase tracking-[0.6em] italic">KAEN MECÂNICA • CONFIANÇA EM CADA KM</p>
+                     <p className="text-[8px] font-black text-zinc-100 uppercase tracking-[1em] italic">PRECISION REPAIR • GUARANTEED</p>
                   </div>
                </div>
              </div>
 
-             {/* Ações */}
-             <div className="w-full max-w-[500px] grid grid-cols-1 sm:grid-cols-2 gap-4 print:hidden px-4">
-                <button onClick={handleWhatsApp} className="sm:col-span-2 bg-[#25D366] py-5 rounded-3xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 shadow-xl active:scale-95">
-                  <MessageCircle size={22}/> Enviar Cobrança WhatsApp
+             {/* Action Buttons Glassmorphic */}
+             <div className="w-full max-w-[550px] space-y-4 print:hidden px-4">
+                <button onClick={handleWhatsApp} className="w-full bg-[#25D366] py-6 rounded-ios font-black uppercase text-[10px] tracking-[0.3em] flex items-center justify-center gap-4 shadow-2xl active:scale-95 transition-all">
+                  <MessageCircle size={24}/> Share on WhatsApp
                 </button>
-                <button onClick={downloadImage} className="bg-zinc-900 border border-zinc-800 py-5 rounded-3xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-zinc-800">
-                  <ImageIcon size={20}/> Baixar Imagem
-                </button>
-                <button onClick={handlePrint} className="bg-zinc-900 border border-zinc-800 py-5 rounded-3xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 hover:bg-zinc-800">
-                  <Printer size={20}/> Imprimir (Retrato)
-                </button>
-                <button onClick={() => navigate('/orders')} className="sm:col-span-2 bg-zinc-800 text-zinc-500 py-4 rounded-3xl font-black uppercase text-[10px] tracking-widest mt-4">
-                  Finalizar e Sair
+                <div className="grid grid-cols-2 gap-4">
+                   <button onClick={downloadImage} className="glass-card py-6 rounded-ios font-black uppercase text-[9px] tracking-[0.3em] flex items-center justify-center gap-3 active:scale-95 transition-all">
+                      <ImageIcon size={20} className="text-[#FF2D55]"/> Bionic Image
+                   </button>
+                   <button onClick={() => window.print()} className="glass-card py-6 rounded-ios font-black uppercase text-[9px] tracking-[0.3em] flex items-center justify-center gap-3 active:scale-95 transition-all">
+                      <Printer size={20} className="text-[#FF2D55]"/> A4 Neural Print
+                   </button>
+                </div>
+                <button onClick={() => navigate('/orders')} className="w-full bg-white/5 text-zinc-500 py-4 rounded-ios font-black uppercase text-[9px] tracking-[0.4em] mt-6">
+                   Finalize Workspace
                 </button>
              </div>
           </div>
@@ -367,22 +409,33 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
 
       <style>{`
         @media print {
-          body { background: white !important; padding: 0 !important; margin: 0 !important; }
+          body { 
+            background: white !important; 
+            margin: 0 !important;
+            padding: 0 !important;
+          }
           #root { display: block !important; }
           .print\\:hidden { display: none !important; }
           div[ref] {
             visibility: visible !important;
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
+            position: relative !important;
             width: 100% !important;
+            max-width: none !important;
             margin: 0 !important;
-            padding: 20mm !important;
+            padding: 25mm !important;
             box-shadow: none !important;
             border: none !important;
+            border-radius: 0 !important;
+            min-height: 0 !important;
+            aspect-ratio: auto !important;
           }
-          @page { size: portrait; margin: 0; }
-          .break-inside-avoid { page-break-inside: avoid; }
+          @page { 
+            size: portrait; 
+            margin: 0; 
+          }
+          .break-inside-avoid {
+            page-break-inside: avoid;
+          }
         }
       `}</style>
     </div>
