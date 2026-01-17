@@ -31,39 +31,58 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isOpen, onClose }) => {
 
   return (
     <>
-      {isOpen && <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[140]" onClick={onClose} />}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[140] animate-in fade-in duration-300" 
+          onClick={onClose} 
+        />
+      )}
 
       <aside className={`
-        fixed inset-y-0 left-0 z-[150] w-72 bg-[#0c0c0e] border-r border-zinc-800/50 transition-all duration-500 transform ease-in-out flex flex-col
-        ${isOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 pointer-events-none'}
+        fixed inset-y-4 left-4 z-[150] w-[18rem] glass-card rounded-ios transition-all duration-500 transform ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col overflow-hidden
+        ${isOpen ? 'translate-x-0 opacity-100' : '-translate-x-[110%] opacity-0 pointer-events-none'}
       `}>
         <div className="p-8 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-[#E11D48] rounded-xl flex items-center justify-center glow-red">
-              <Wrench className="text-white w-5 h-5" />
+            <div className="w-11 h-11 bg-[#FF2D55] rounded-2xl flex items-center justify-center shadow-lg shadow-[#FF2D55]/30">
+              <Wrench className="text-white w-6 h-6" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-black tracking-tighter text-white uppercase italic leading-none">KAEN<span className="text-[#E11D48]">PRO</span></span>
+              <span className="text-xl font-black tracking-tight text-white uppercase italic leading-none">
+                KAEN<span className="text-[#FF2D55]">PRO</span>
+              </span>
+              <span className="text-[7px] font-bold text-zinc-500 uppercase tracking-widest">Bionic OS 26</span>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-zinc-500 hover:text-white"><X size={18}/></button>
+          <button 
+            onClick={onClose} 
+            className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-zinc-400 transition-colors"
+          >
+            <X size={18}/>
+          </button>
         </div>
 
-        {/* ÁREA DE MENU COM SCROLL ATIVO */}
-        <nav className="flex-1 overflow-y-auto px-4 space-y-2 no-scrollbar scroll-smooth overscroll-contain pb-20">
+        <nav className="flex-1 overflow-y-auto px-4 space-y-2 no-scrollbar scroll-smooth pb-10">
           {filteredItems.map((item) => (
             <NavLink
               key={item.path} to={item.path} onClick={onClose}
               className={({ isActive }) => `
-                flex items-center justify-between px-4 py-4 rounded-xl transition-all duration-200 group
-                ${isActive ? 'bg-[#E11D48] text-white active-glow' : 'text-zinc-500 hover:bg-zinc-900/50 hover:text-zinc-200'}
+                flex items-center justify-between px-5 py-4 rounded-[1.8rem] transition-all duration-300 group
+                ${isActive 
+                  ? 'bg-[#FF2D55] text-white shadow-xl shadow-[#FF2D55]/20' 
+                  : 'text-zinc-500 hover:bg-white/5 hover:text-white'}
               `}
             >
               {({ isActive }) => (
                 <>
-                  <div className="flex items-center space-x-3">
-                    <item.icon size={18} className={isActive ? 'text-white' : 'text-zinc-600 group-hover:text-[#E11D48]'} />
-                    <span className="font-bold text-[10px] uppercase tracking-widest italic">{item.name}</span>
+                  <div className="flex items-center space-x-4">
+                    <item.icon 
+                      size={20} 
+                      className={isActive ? 'text-white' : 'text-zinc-600 group-hover:text-[#FF2D55] transition-colors'} 
+                    />
+                    <span className="font-bold text-[10px] uppercase tracking-[0.12em] italic">
+                      {item.name}
+                    </span>
                   </div>
                   {isActive && <ChevronRight size={14} className="opacity-50" />}
                 </>
@@ -72,10 +91,12 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isOpen, onClose }) => {
           ))}
         </nav>
 
-        <div className="p-6 border-t border-zinc-800/50 bg-[#0a0a0b] flex-shrink-0">
-          <div className="flex items-center space-x-3 p-3 rounded-xl text-zinc-500 hover:bg-zinc-900 cursor-pointer group transition-all">
-            <Settings size={16} className="group-hover:rotate-90 transition-transform duration-500" />
-            <span className="text-[10px] font-black uppercase tracking-widest italic">Ajustes Cloud</span>
+        <div className="p-6 mt-auto border-t border-white/5 bg-white/[0.02]">
+          <div className="flex items-center space-x-4 p-4 rounded-3xl hover:bg-white/5 cursor-pointer text-zinc-500 group transition-all">
+            <div className="p-2 bg-white/5 rounded-xl group-hover:text-white group-hover:rotate-45 transition-all duration-500">
+              <Settings size={18} />
+            </div>
+            <span className="text-[9px] font-black uppercase tracking-widest italic">Core Settings</span>
           </div>
         </div>
       </aside>

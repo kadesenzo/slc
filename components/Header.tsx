@@ -11,53 +11,49 @@ interface HeaderProps {
   syncStatus: SyncStatus;
 }
 
-// Fixed: Added missing export for Header component
 const Header: React.FC<HeaderProps> = ({ onLogout, onToggleSidebar, role, username, syncStatus }) => {
   return (
-    <header className="h-20 border-b border-zinc-800/50 bg-[#0c0c0e] flex items-center justify-between px-6 md:px-10 z-30 shadow-sm">
+    <header className="h-24 flex items-center justify-between px-6 md:px-12 z-40 bg-transparent sticky top-0">
       <div className="flex items-center gap-6">
-        {/* BOTÃO DE 3 BARRAS - AGORA VISÍVEL NO DESKTOP TAMBÉM */}
         <button 
           onClick={onToggleSidebar}
-          className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-400 hover:text-white hover:border-[#E11D48] transition-all active:scale-95 flex items-center gap-2 group"
-          title="Abrir Menu Principal"
+          className="p-4 glass-card rounded-[1.8rem] text-zinc-300 hover:text-white hover:border-[#FF2D55] transition-all active:scale-90 flex items-center gap-3 group"
         >
-          <Menu size={20} />
-          <span className="hidden sm:block text-[10px] font-black uppercase tracking-widest group-hover:text-[#E11D48]">Menu Geral</span>
+          <Menu size={22} />
+          <span className="hidden sm:block text-[9px] font-black uppercase tracking-[0.2em] group-hover:text-[#FF2D55]">Workspace</span>
         </button>
 
-        <div className="hidden lg:flex items-center gap-3 px-4 py-2 bg-zinc-900/50 border border-zinc-800 rounded-full">
+        <div className="hidden lg:flex items-center gap-3 px-6 py-3 glass-card rounded-full">
           {syncStatus === SyncStatus.SYNCING ? (
-            <RefreshCw size={12} className="text-[#E11D48] animate-spin" />
+            <RefreshCw size={14} className="text-[#FF2D55] animate-spin" />
           ) : (
-            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+            <div className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_12px_rgba(16,185,129,0.8)]"></div>
           )}
-          <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
-            {syncStatus === SyncStatus.SYNCING ? 'Cloud Syncing...' : 'Sincronizado'}
+          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">
+            {syncStatus === SyncStatus.SYNCING ? 'Encrypting...' : 'Neural Link Active'}
           </span>
         </div>
       </div>
 
       <div className="flex items-center space-x-6">
-        <button className="relative p-2 text-zinc-500 hover:text-white transition-colors hidden sm:block">
-          <Bell size={18} />
-          <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-[#E11D48] rounded-full ring-2 ring-[#0c0c0e]"></span>
+        <button className="relative p-4 glass-card rounded-full text-zinc-400 hover:text-white transition-all hover:scale-110 active:scale-90 hidden sm:flex items-center justify-center">
+          <Bell size={20} />
+          <span className="absolute top-4 right-4 w-2 h-2 bg-[#FF2D55] rounded-full ring-4 ring-black"></span>
         </button>
 
-        <div className="flex items-center space-x-4 border-l border-zinc-800/50 pl-6">
-          <div className="text-right hidden sm:block">
-            <p className="text-xs font-bold text-white uppercase tracking-tight">{username}</p>
-            <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">{role}</p>
+        <div className="flex items-center space-x-4 glass-card px-2 py-2 rounded-full">
+          <div className="text-right pl-6 hidden sm:block">
+            <p className="text-[11px] font-black text-white uppercase italic leading-none">{username}</p>
+            <p className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest mt-1">{role}</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 shadow-inner">
-            <UserCircle size={22} />
+          <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 overflow-hidden shadow-inner">
+            <UserCircle size={28} />
           </div>
           <button 
             onClick={onLogout}
-            className="p-2 text-zinc-500 hover:text-[#E11D48] transition-all"
-            title="Sair"
+            className="p-3 text-zinc-500 hover:text-[#FF2D55] hover:scale-110 active:scale-90 transition-all pr-4"
           >
-            <LogOut size={18} />
+            <LogOut size={20} />
           </button>
         </div>
       </div>

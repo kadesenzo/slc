@@ -4,38 +4,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Kaenpro - Elite Garage Management</title>
+    <title>Kaenpro - Bionic Edge Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --brand-red: #E11D48;
-            --bg-main: #09090b;
+            --brand-red: #FF2D55; /* iOS System Red */
+            --brand-red-deep: #D00036;
+            --bg-main: #000000;
+            --bg-card: rgba(20, 20, 22, 0.7);
+            --ios-blur: blur(40px) saturate(180%);
+            --ios-radius: 3.5rem; /* Ultra-premium curves */
+            --ios-border: 1px solid rgba(255, 255, 255, 0.08);
         }
+        
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--bg-main);
-            color: #fafafa;
+            color: #ffffff;
             margin: 0;
             padding: 0;
             overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
-            overscroll-behavior-y: contain; /* Previne o bounce effect indesejado */
+            overscroll-behavior-y: contain;
+            letter-spacing: -0.01em;
         }
-        .active-glow { box-shadow: 0 0 20px rgba(225, 29, 72, 0.3); }
-        .glow-red { box-shadow: 0 4px 15px rgba(225, 29, 72, 0.2); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        * { scroll-behavior: smooth; }
+
+        /* iOS Squircle-like Smoothing */
+        .rounded-ios {
+            border-radius: var(--ios-radius);
+        }
+
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: var(--ios-blur);
+            -webkit-backdrop-filter: var(--ios-blur);
+            border: var(--ios-border);
+        }
+
+        .active-glow { 
+            box-shadow: 0 0 40px rgba(255, 45, 85, 0.15); 
+        }
+
+        .no-scrollbar::-webkit-scrollbar { 
+            display: none; 
+        }
+
+        /* Smooth iOS Momentum Scrolling */
+        * { 
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+        }
         
         main {
             padding-bottom: env(safe-area-inset-bottom);
-            -webkit-overflow-scrolling: touch; /* Melhora scroll no iOS */
         }
 
-        /* Animações suaves */
-        .animate-in {
-            animation-duration: 400ms;
-            animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        /* iOS-style slide animations */
+        .animate-ios-slide {
+            animation: iosSlide 500ms cubic-bezier(0.32, 0.72, 0, 1);
+        }
+
+        @keyframes iosSlide {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Hover effects for premium feel */
+        .hover-scale {
+            transition: transform 300ms cubic-bezier(0.2, 0, 0, 1);
+        }
+        .hover-scale:active {
+            transform: scale(0.96);
         }
     </style>
 <script type="importmap">

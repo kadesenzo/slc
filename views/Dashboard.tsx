@@ -33,21 +33,21 @@ const Dashboard: React.FC<{ session?: UserSession }> = ({ session }) => {
 
   const fetchAiInsights = async (currentOrders: ServiceOrder[], currentParts: Part[]) => {
     if (!process.env.API_KEY) {
-      setAiInsight('Dica: Monitore seu estoque de peças de alta rotatividade para não perder vendas hoje.');
+      setAiInsight('Intelligence: Dynamic stock rotation needed to maximize today\'s turnover.');
       return;
     }
     
     setIsAiLoading(true);
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const prompt = `Analise os dados desta oficina mecânica: ${currentOrders.length} ordens de serviço e ${currentParts.length} itens no estoque. Forneça um insight estratégico de 2 frases para o dono da oficina aumentar o lucro hoje.`;
+      const prompt = `Analise os dados desta oficina mecânica: ${currentOrders.length} ordens de serviço e ${currentParts.length} itens no estoque. Forneça um insight estratégico de 2 frases para o dono da oficina aumentar o lucro hoje em estilo executivo Apple.`;
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: prompt,
       });
-      setAiInsight(response.text || 'Otimize seu fluxo de caixa finalizando as OS pendentes.');
+      setAiInsight(response.text || 'Operational synergy detected. Converge on pending work orders.');
     } catch (err) {
-      setAiInsight('Planejamento estratégico: Avalie o estoque de peças de giro rápido para não perder vendas hoje.');
+      setAiInsight('Optimization alert: High-velocity parts require immediate audit for demand spike.');
     } finally {
       setIsAiLoading(false);
     }
@@ -58,63 +58,82 @@ const Dashboard: React.FC<{ session?: UserSession }> = ({ session }) => {
   const criticalStock = parts.filter(p => p.stock <= p.minStock).length;
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700 pb-20">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="space-y-12 animate-ios-slide p-6 md:p-12 pb-32 max-w-[1400px] mx-auto">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
         <div>
-          <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter">Centro de <span className="text-[#E11D48]">Performance</span></h1>
-          <p className="text-zinc-500 font-bold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 mt-2">
-            <Calendar size={12} className="text-[#E11D48]" /> Dashboard Ativo • {session?.username}
+          <h1 className="text-5xl md:text-7xl font-black text-white italic uppercase tracking-tighter leading-none">
+            Core <span className="text-[#FF2D55]">Synergy</span>
+          </h1>
+          <p className="text-zinc-500 font-bold text-[10px] uppercase tracking-[0.4em] flex items-center gap-3 mt-4">
+            <Calendar size={14} className="text-[#FF2D55]" /> Neural Dashboard • v 26.0
           </p>
         </div>
         <button 
           onClick={() => navigate('/orders/new')} 
-          className="bg-[#E11D48] text-white px-8 py-4 rounded-2xl font-bold uppercase text-[11px] tracking-widest flex items-center gap-3 shadow-xl glow-red hover:scale-[1.02] active:scale-95 transition-all"
+          className="bg-[#FF2D55] text-white px-10 py-5 rounded-ios font-black uppercase text-[10px] tracking-[0.2em] flex items-center gap-4 shadow-2xl shadow-[#FF2D55]/30 hover:scale-105 active:scale-95 transition-all"
         >
-          <PlusCircle size={18} /> Nova Ordem de Serviço
+          <PlusCircle size={20} /> Deploy New Order
         </button>
       </div>
 
-      <div className="bg-[#121214] border border-zinc-800/60 p-8 rounded-[2rem] shadow-xl relative overflow-hidden group border-l-4 border-l-[#E11D48]">
-        <div className="absolute top-0 right-0 p-10 text-zinc-800 opacity-10 group-hover:scale-110 transition-transform"><Sparkles size={120}/></div>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-[#E11D48]/10 text-[#E11D48] rounded-xl"><Sparkles size={18}/></div>
-          <h3 className="text-[10px] font-bold text-[#E11D48] uppercase tracking-[0.3em] italic">Kaenpro Smart AI</h3>
+      {/* AI INSIGHT CARD */}
+      <div className="glass-card p-10 rounded-ios relative overflow-hidden group">
+        <div className="absolute -top-20 -right-20 p-20 text-white/5 opacity-10 group-hover:scale-125 transition-transform duration-1000">
+          <Sparkles size={240}/>
+        </div>
+        <div className="flex items-center gap-4 mb-6">
+          <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
+            <Sparkles size={22} className="text-[#FF2D55]"/>
+          </div>
+          <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] italic">Bionic Intelligence</h3>
         </div>
         {isAiLoading ? (
-          <div className="flex items-center gap-4 text-zinc-500 italic"><Loader2 className="animate-spin" size={18}/> <span className="text-sm font-medium">IA analisando dados técnicos...</span></div>
+          <div className="flex items-center gap-4 text-zinc-600 italic">
+            <Loader2 className="animate-spin" size={24}/> 
+            <span className="text-base font-bold uppercase tracking-widest">Synthesizing telemetry...</span>
+          </div>
         ) : (
-          <p className="text-xl font-bold text-zinc-100 italic leading-snug max-w-3xl">{aiInsight || 'Processando insights estratégicos...'}</p>
+          <p className="text-2xl md:text-3xl font-black text-white italic leading-[1.1] max-w-4xl tracking-tight">
+            {aiInsight || 'Link established. Awaiting data stream...'}
+          </p>
         )}
       </div>
 
+      {/* STATS TILES */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-[#121214] border border-zinc-800/60 p-8 rounded-[2rem] shadow-lg group hover:border-[#E11D48]/30 transition-all">
-          <div className="flex justify-between items-start mb-4">
-            <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Receita Hoje</p>
-            <ArrowUpRight size={16} className="text-emerald-500" />
+        <div className="glass-card p-10 rounded-ios hover:scale-[1.02] transition-all group relative overflow-hidden">
+          <div className="flex justify-between items-start mb-6">
+            <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em]">Daily Volume</p>
+            <ArrowUpRight size={20} className="text-emerald-500 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
           </div>
-          <p className="text-3xl font-black text-white italic">R$ {dailyRevenue.toLocaleString('pt-BR')}</p>
-          <div className="mt-4 h-1 bg-zinc-900 rounded-full overflow-hidden">
-            <div className="h-full bg-emerald-500 w-[65%]"></div>
+          <p className="text-4xl font-black text-white italic tracking-tighter">
+            R$ {dailyRevenue.toLocaleString('pt-BR')}
+          </p>
+          <div className="mt-6 h-[2px] bg-white/5 rounded-full overflow-hidden">
+            <div className="h-full bg-emerald-500 w-[72%] shadow-[0_0_10px_#10B981]"></div>
           </div>
         </div>
         
-        <div className="bg-[#121214] border border-zinc-800/60 p-8 rounded-[2rem] shadow-lg hover:border-zinc-700 transition-all">
-          <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-4">Serviços Entregues</p>
-          <p className="text-3xl font-black text-white italic">{dailyFinished.length}</p>
-          <p className="text-[9px] text-zinc-600 font-bold uppercase mt-2 tracking-tighter">Dados de {new Date().toLocaleDateString('pt-BR')}</p>
+        <div className="glass-card p-10 rounded-ios hover:scale-[1.02] transition-all group">
+          <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] mb-6">Neural Handover</p>
+          <p className="text-4xl font-black text-white italic tracking-tighter">{dailyFinished.length}</p>
+          <p className="text-[9px] text-zinc-600 font-bold uppercase mt-4 tracking-widest">Completed Shifts</p>
         </div>
 
-        <div className="bg-[#121214] border border-zinc-800/60 p-8 rounded-[2rem] shadow-lg hover:border-zinc-700 transition-all">
-          <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-4">Veículos no Pátio</p>
-          <p className="text-3xl font-black text-white italic">{orders.filter(o => o.status === OSStatus.EM_ANDAMENTO).length}</p>
-          <p className="text-[9px] text-zinc-600 font-bold uppercase mt-2 tracking-tighter">Total em execução</p>
+        <div className="glass-card p-10 rounded-ios hover:scale-[1.02] transition-all group">
+          <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] mb-6">Active Telemetry</p>
+          <p className="text-4xl font-black text-white italic tracking-tighter">
+            {orders.filter(o => o.status === OSStatus.EM_ANDAMENTO).length}
+          </p>
+          <p className="text-[9px] text-zinc-600 font-bold uppercase mt-4 tracking-widest">In Progress</p>
         </div>
 
-        <div className="bg-[#121214] border border-zinc-800/60 p-8 rounded-[2rem] shadow-lg hover:border-[#E11D48]/30 transition-all">
-          <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mb-4">Estoque Crítico</p>
-          <p className={`text-3xl font-black italic ${criticalStock > 0 ? 'text-[#E11D48]' : 'text-white'}`}>{criticalStock}</p>
-          <p className="text-[9px] text-zinc-600 font-bold uppercase mt-2 tracking-tighter">Itens abaixo do mínimo</p>
+        <div className="glass-card p-10 rounded-ios hover:scale-[1.02] transition-all group hover:border-[#FF2D55]/30">
+          <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] mb-6">Supply Variance</p>
+          <p className={`text-4xl font-black italic tracking-tighter ${criticalStock > 0 ? 'text-[#FF2D55]' : 'text-white'}`}>
+            {criticalStock}
+          </p>
+          <p className="text-[9px] text-zinc-600 font-bold uppercase mt-4 tracking-widest">Inventory Delta</p>
         </div>
       </div>
     </div>
