@@ -14,17 +14,17 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ role, isOpen, onClose }) => {
   const menuItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', roles: ['Dono', 'Funcionário', 'Recepção'] },
+    { name: 'Painel Central', icon: LayoutDashboard, path: '/dashboard', roles: ['Dono', 'Funcionário', 'Recepção'] },
     { name: 'Agenda Pro', icon: CalendarDays, path: '/calendar', roles: ['Dono', 'Recepção', 'Funcionário'] },
-    { name: 'Terminal Mecânico', icon: Smartphone, path: '/terminal', roles: ['Dono', 'Funcionário'] },
-    { name: 'Criar Nota', icon: PlusSquare, path: '/orders/new', roles: ['Dono', 'Recepção', 'Funcionário'] },
-    { name: 'Notas Geradas', icon: FileText, path: '/orders', roles: ['Dono', 'Recepção', 'Funcionário'] },
-    { name: 'Financeiro', icon: PieChart, path: '/financial', roles: ['Dono'] },
-    { name: 'Cobranças', icon: DollarSign, path: '/billing', roles: ['Dono', 'Recepção'] },
-    { name: 'Clientes', icon: Users, path: '/clients', roles: ['Dono', 'Recepção'] },
-    { name: 'Veículos', icon: Car, path: '/vehicles', roles: ['Dono', 'Recepção', 'Funcionário'] },
-    { name: 'Estoque', icon: Package, path: '/inventory', roles: ['Dono', 'Recepção'] },
-    { name: 'Equipe', icon: UserCheck, path: '/employees', roles: ['Dono'] },
+    { name: 'Terminal Técnico', icon: Smartphone, path: '/terminal', roles: ['Dono', 'Funcionário'] },
+    { name: 'Lançar Nota', icon: PlusSquare, path: '/orders/new', roles: ['Dono', 'Recepção', 'Funcionário'] },
+    { name: 'Histórico de Notas', icon: FileText, path: '/orders', roles: ['Dono', 'Recepção', 'Funcionário'] },
+    { name: 'Fluxo de Caixa', icon: PieChart, path: '/financial', roles: ['Dono'] },
+    { name: 'Central de Cobrança', icon: DollarSign, path: '/billing', roles: ['Dono', 'Recepção'] },
+    { name: 'Base de Clientes', icon: Users, path: '/clients', roles: ['Dono', 'Recepção'] },
+    { name: 'Frota de Veículos', icon: Car, path: '/vehicles', roles: ['Dono', 'Recepção', 'Funcionário'] },
+    { name: 'Gestão de Estoque', icon: Package, path: '/inventory', roles: ['Dono', 'Recepção'] },
+    { name: 'Equipe Kaen', icon: UserCheck, path: '/employees', roles: ['Dono'] },
   ];
 
   const filteredItems = menuItems.filter(item => item.roles.includes(role));
@@ -96,7 +96,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isOpen, onClose }) => {
             <div className="p-2 bg-white/5 rounded-xl group-hover:text-white group-hover:rotate-45 transition-all duration-500">
               <Settings size={18} />
             </div>
-            <span className="text-[9px] font-black uppercase tracking-widest italic">Core Settings</span>
+            <span className="text-[9px] font-black uppercase tracking-widest italic">Ajustes do Núcleo</span>
           </div>
         </div>
       </aside>
