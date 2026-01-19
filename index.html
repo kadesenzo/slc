@@ -52,19 +52,19 @@
             width: 100% !important;
         }
 
-        /* Container da Nota Kaen */
+        /* Container da Nota Kaen - PROPORÇÃO A4 (Vertical) */
         .kaen-invoice {
             width: 800px;
-            min-height: 800px;
+            min-height: 1131px; /* Proporção A4 baseada na largura de 800px */
             background: white;
             color: black;
-            padding: 3.5rem;
+            padding: 4rem;
             display: flex;
             flex-direction: column;
             position: relative;
             font-family: 'Inter', sans-serif;
             box-sizing: border-box;
-            border-radius: 0.5rem;
+            border-radius: 4px;
         }
 
         /* Escalonamento Inteligente do Preview */
@@ -77,24 +77,24 @@
 
         @media (max-width: 850px) {
             .invoice-scale-wrapper {
-                transform: scale(0.45);
+                transform: scale(0.42);
                 transform-origin: top center;
-                margin-bottom: -420px;
+                margin-bottom: -650px;
             }
         }
 
         @media (max-width: 450px) {
             .invoice-scale-wrapper {
-                transform: scale(0.38);
-                margin-bottom: -480px;
+                transform: scale(0.35);
+                margin-bottom: -720px;
             }
         }
         
         @media (min-width: 851px) {
             .invoice-scale-wrapper {
-                transform: scale(0.75); /* Reduzido de 0.85 para não ficar gigante no desktop */
+                transform: scale(0.70); /* Ajustado para caber melhor na tela do PC */
                 transform-origin: top center;
-                margin-bottom: -150px;
+                margin-bottom: -320px;
             }
         }
     </style>
