@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Plus, Trash2, Wrench, ChevronLeft, X,
-  User, Search, Loader2, Check, ImageIcon, Car
+  User, Search, Loader2, Check, ImageIcon, Car, Info
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Client, Vehicle, OSItem, OSStatus, ServiceOrder, PaymentStatus, UserSession } from '../types';
@@ -91,8 +91,15 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
         updatedAt: new Date().toISOString()
       };
 
+      // 1. Salvar a O.S.
       const currentOrders = JSON.parse(localStorage.getItem(`kaenpro_${session.username}_orders`) || '[]');
       await syncData('orders', [...currentOrders, os]);
+
+      // 2. Sincronizar KM com a Frota (Veículos)
+      const updatedVehicles = vehicles.map(v => 
+        v.id === selectedVehicle.id ? { ...v, km: parseFloat(selectedVehicle.km.toString()) } : v
+      );
+      await syncData('vehicles', updatedVehicles);
 
       setFinalOs(os);
       setStep('FINAL');
@@ -158,17 +165,33 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
         {step === 'VEICULO' && selectedClient && (
           <div className="w-full max-w-2xl space-y-8 animate-in slide-in-from-right-4 duration-500 flex flex-col items-center">
             <div className="text-center">
-              <h1 className="text-4xl md:text-5xl font-black italic uppercase">VEÍCULO</h1>
-              <p className="text-zinc-600 font-black uppercase tracking-widest text-[10px] mt-2">{selectedClient.name}</p>
+              <h1 className="text-4xl md:text-5xl font-black italic uppercase">FROTA</h1>
+              <p className="text-zinc-600 font-black uppercase tracking-widest text-[10px] mt-2">SELECIONE O CARRO DE {selectedClient.name}</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
+            <div className="grid grid-cols-1 gap-4 w-full">
               {clientVehicles.map(v => (
-                <button key={v.id} onClick={() => { setSelectedVehicle(v); setStep('ITENS'); }} className="p-8 glass-card border-white/5 rounded-[2.5rem] text-center hover:border-[#FF2D55]/50 transition-all group">
-                  <Car size={32} className="mx-auto text-zinc-800 group-hover:text-[#FF2D55] mb-3" />
-                  <p className="text-2xl font-black italic uppercase">{v.plate}</p>
-                  <p className="text-[9px] font-bold text-zinc-600 uppercase mt-2">{v.model}</p>
+                <button key={v.id} onClick={() => { setSelectedVehicle(v); setStep('ITENS'); }} className="p-6 glass-card border-white/5 rounded-[2.5rem] flex items-center justify-between hover:border-[#FF2D55]/50 transition-all group text-left">
+                  <div className="flex items-center gap-6">
+                    <div className="p-4 bg-white/5 rounded-2xl border border-white/10 text-zinc-700 group-hover:text-[#FF2D55]">
+                       <Car size={24} />
+                    </div>
+                    <div>
+                      <p className="text-xl font-black italic uppercase group-hover:text-white">{v.plate}</p>
+                      <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">{v.model} • {v.brand}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[9px] font-black text-zinc-800 uppercase italic">Último Registro</p>
+                    <p className="text-xs font-black text-zinc-500">{v.km.toLocaleString()} KM</p>
+                  </div>
                 </button>
               ))}
+              {clientVehicles.length === 0 && (
+                <div className="text-center p-10 border-2 border-dashed border-zinc-900 rounded-ios opacity-30">
+                  <Car size={32} className="mx-auto mb-4" />
+                  <p className="text-xs font-black uppercase tracking-widest">Nenhum veículo vinculado a este cliente</p>
+                </div>
+              )}
             </div>
             <button onClick={() => setStep('CLIENTE')} className="w-full py-4 text-zinc-700 font-black uppercase text-[9px] tracking-widest italic hover:text-white">VOLTAR PARA CLIENTES</button>
           </div>
@@ -177,46 +200,67 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
         {step === 'ITENS' && selectedVehicle && (
           <div className="w-full max-w-3xl space-y-10 animate-in slide-in-from-right-4 duration-500 flex flex-col items-center">
             <div className="glass-card p-8 rounded-ios border-white/10 space-y-10 w-full">
-               <div className="flex items-center justify-between">
-                 <div>
-                   <h3 className="text-xl font-black italic uppercase tracking-tighter">{selectedVehicle.plate}</h3>
-                   <p className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">{selectedClient.name}</p>
+               <div className="flex items-center justify-between border-b border-white/5 pb-6">
+                 <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-[#FF2D55]/10 rounded-xl flex items-center justify-center text-[#FF2D55]">
+                      <Car size={24} />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black italic uppercase tracking-tighter">{selectedVehicle.plate}</h3>
+                      <p className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">{selectedVehicle.model} • {selectedClient?.name}</p>
+                    </div>
                  </div>
                  <button onClick={addItem} className="px-6 py-3 bg-[#FF2D55] rounded-full text-white font-black uppercase text-[9px] tracking-widest flex items-center gap-2 active:scale-90 transition-all">
-                   <Plus size={16}/> ADICIONAR
+                   <Plus size={16}/> ADICIONAR ITEM
                  </button>
                </div>
+
                <div className="space-y-4">
                  {items.map(item => (
                    <div key={item.id} className="bg-black p-5 rounded-[2rem] border border-white/5 space-y-4">
-                     <input type="text" placeholder="DESCRIÇÃO..." value={item.description} onChange={(e)=>updateItem(item.id, 'description', e.target.value.toUpperCase())} className="w-full bg-transparent text-[11px] font-black outline-none uppercase italic text-white tracking-widest"/>
+                     <input type="text" placeholder="DESCRIÇÃO DA PEÇA OU SERVIÇO..." value={item.description} onChange={(e)=>updateItem(item.id, 'description', e.target.value.toUpperCase())} className="w-full bg-transparent text-[11px] font-black outline-none uppercase italic text-white tracking-widest"/>
                      <div className="flex gap-4">
                         <input type="number" placeholder="QTD" value={item.quantity || ''} onChange={(e)=>updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)} className="w-20 bg-white/5 border border-white/5 p-4 rounded-xl text-center text-[11px] font-black text-white outline-none"/>
-                        <input type="number" placeholder="UNITÁRIO" value={item.unitPrice || ''} onChange={(e)=>updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)} className="flex-1 bg-white/5 border border-white/5 p-4 rounded-xl text-[11px] font-black text-white outline-none"/>
+                        <div className="relative flex-1">
+                           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-800 text-[10px] font-black">R$</span>
+                           <input type="number" placeholder="UNITÁRIO" value={item.unitPrice || ''} onChange={(e)=>updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)} className="w-full bg-white/5 border border-white/5 p-4 pl-10 rounded-xl text-[11px] font-black text-white outline-none"/>
+                        </div>
                         <button onClick={()=>removeItem(item.id)} className="p-4 text-zinc-800 hover:text-[#FF2D55]"><Trash2 size={20}/></button>
                      </div>
                    </div>
                  ))}
                </div>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                  <div>
                    <label className="text-[8px] font-black text-zinc-700 tracking-widest uppercase block mb-1.5 ml-1">MÃO DE OBRA</label>
                    <input type="number" value={labor} onChange={(e)=>setLabor(e.target.value)} className="w-full bg-black border border-white/5 p-6 rounded-[1.8rem] text-xl font-black outline-none text-white italic"/>
                  </div>
                  <div>
+                   <label className="text-[8px] font-black text-zinc-700 tracking-widest uppercase block mb-1.5 ml-1">KM ATUAL</label>
+                   <input 
+                      type="number" 
+                      value={selectedVehicle.km} 
+                      onChange={(e) => setSelectedVehicle({...selectedVehicle, km: parseFloat(e.target.value) || 0})}
+                      className="w-full bg-black border border-white/5 p-6 rounded-[1.8rem] text-xl font-black outline-none text-[#FF2D55] italic"
+                    />
+                 </div>
+                 <div>
                    <label className="text-[8px] font-black text-zinc-700 tracking-widest uppercase block mb-1.5 ml-1">PAGAMENTO</label>
-                   <select value={paymentStatus} onChange={(e)=>setPaymentStatus(e.target.value as PaymentStatus)} className="w-full bg-black border border-white/5 p-6 rounded-[1.8rem] text-[10px] font-black uppercase outline-none text-white italic cursor-pointer">
+                   <select value={paymentStatus} onChange={(e)=>setPaymentStatus(e.target.value as PaymentStatus)} className="w-full h-[74px] bg-black border border-white/5 px-6 rounded-[1.8rem] text-[10px] font-black uppercase outline-none text-white italic cursor-pointer">
                      <option value={PaymentStatus.PENDENTE}>PENDENTE</option>
                      <option value={PaymentStatus.PAGO}>PAGO</option>
                    </select>
                  </div>
                </div>
+
                <div className="p-10 bg-white/5 rounded-ios border border-white/5 flex flex-col items-center gap-1">
-                 <span className="text-[9px] font-black text-zinc-700 uppercase tracking-widest italic">VALOR TOTAL</span>
+                 <span className="text-[9px] font-black text-zinc-700 uppercase tracking-widest italic">VALOR TOTAL LÍQUIDO</span>
                  <span className="text-5xl font-black italic">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                </div>
-               <button onClick={handleFinalize} disabled={isSaving} className="w-full bg-[#FF2D55] py-6 rounded-ios font-black uppercase text-[10px] tracking-[0.5em] flex items-center justify-center gap-5 active:scale-95 italic">
-                 {isSaving ? <Loader2 className="animate-spin" size={24}/> : <Check size={24}/>} FINALIZAR NOTA
+
+               <button onClick={handleFinalize} disabled={isSaving} className="w-full bg-[#FF2D55] py-6 rounded-ios font-black uppercase text-[10px] tracking-[0.5em] flex items-center justify-center gap-5 active:scale-95 italic transition-all shadow-[0_20px_60px_rgba(255,45,85,0.3)]">
+                 {isSaving ? <Loader2 className="animate-spin" size={24}/> : <Check size={24}/>} GERAR NOTA FISCAL
                </button>
             </div>
           </div>
