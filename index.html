@@ -50,12 +50,13 @@
             flex-direction: column !important;
             align-items: center !important;
             width: 100% !important;
+            overflow-x: visible !important; /* IMPORTANTE: Permite que a nota escalada não seja cortada */
         }
 
         /* Container da Nota Kaen - PROPORÇÃO A4 (Vertical) */
         .kaen-invoice {
             width: 800px;
-            min-height: 1131px; /* Proporção A4 baseada na largura de 800px */
+            min-height: 1131px;
             background: white;
             color: black;
             padding: 4rem;
@@ -65,20 +66,28 @@
             font-family: 'Inter', sans-serif;
             box-sizing: border-box;
             border-radius: 4px;
+            flex-shrink: 0; /* Impede que o flexbox tente amassar a nota */
         }
 
-        /* Escalonamento Inteligente do Preview */
+        /* Sistema de Preview Ante-Corte */
         .invoice-preview-container {
             display: flex;
             justify-content: center;
             width: 100%;
-            overflow: visible;
+            overflow: visible; /* Garante que as laterais não sumam */
+            position: relative;
+        }
+
+        /* Wrapper que mantém a base de 800px mas escala para o olho do usuário */
+        .invoice-scale-wrapper {
+            width: 800px;
+            transform-origin: top center;
+            flex-shrink: 0;
         }
 
         @media (max-width: 850px) {
             .invoice-scale-wrapper {
                 transform: scale(0.42);
-                transform-origin: top center;
                 margin-bottom: -650px;
             }
         }
@@ -86,15 +95,14 @@
         @media (max-width: 450px) {
             .invoice-scale-wrapper {
                 transform: scale(0.35);
-                margin-bottom: -720px;
+                margin-bottom: -740px;
             }
         }
         
         @media (min-width: 851px) {
             .invoice-scale-wrapper {
-                transform: scale(0.70); /* Ajustado para caber melhor na tela do PC */
-                transform-origin: top center;
-                margin-bottom: -320px;
+                transform: scale(0.70);
+                margin-bottom: -340px;
             }
         }
     </style>
