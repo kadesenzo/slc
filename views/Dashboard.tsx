@@ -4,11 +4,7 @@ import {
   PlusCircle, 
   Sparkles,
   Loader2,
-  Calendar,
-  Wrench,
-  TrendingUp,
-  Package,
-  CheckCircle2
+  Calendar
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ServiceOrder, Part, OSStatus, UserSession } from '../types';
@@ -60,7 +56,6 @@ const Dashboard: React.FC<{ session?: UserSession }> = ({ session }) => {
   return (
     <div className="space-y-16 animate-ios-slide p-8 md:p-16 pb-40 max-w-[1400px] mx-auto flex flex-col items-center">
       
-      {/* Header Centralizado Dashboard */}
       <div className="flex flex-col items-center text-center gap-12 w-full">
         <div className="animate-in fade-in zoom-in duration-1000 space-y-6">
           <h1 className="text-6xl md:text-[9rem] font-black text-white italic uppercase tracking-tighter leading-[0.8]">
@@ -79,7 +74,6 @@ const Dashboard: React.FC<{ session?: UserSession }> = ({ session }) => {
         </button>
       </div>
 
-      {/* Insight da IA Centralizado iOS 26 */}
       <div className="w-full glass-card p-12 md:p-16 rounded-ios relative overflow-hidden border-white/10 shadow-[0_80px_150px_rgba(0,0,0,0.8)] text-center flex flex-col items-center">
         <div className="absolute -top-40 -right-40 p-40 text-[#FF2D55]/10 opacity-5 pointer-events-none">
           <Sparkles size={400}/>
@@ -103,7 +97,6 @@ const Dashboard: React.FC<{ session?: UserSession }> = ({ session }) => {
         )}
       </div>
 
-      {/* Grid de Estatísticas iOS 26 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full">
         <div className="glass-card p-10 rounded-ios shadow-2xl flex flex-col items-center text-center border border-white/5">
           <p className="text-zinc-700 text-[10px] font-black uppercase tracking-[0.4em] mb-10 italic">FATURAMENTO</p>

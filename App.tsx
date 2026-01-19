@@ -16,7 +16,7 @@ import Billing from './views/Billing';
 import Financial from './views/Financial';
 import Calendar from './views/Calendar';
 import MechanicTerminal from './views/MechanicTerminal';
-import Sidebar from './components/Sidebar';
+import Sidebar from './Sidebar'; // Corrigido: Sidebar está na raiz
 import Header from './components/Header';
 import { SyncStatus, UserSession } from './types';
 
@@ -78,7 +78,6 @@ const App: React.FC = () => {
             onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           />
           
-          {/* ÁREA PRINCIPAL COM SCROLL FLUIDO */}
           <main className="flex-1 overflow-y-auto no-scrollbar bg-zinc-950 scroll-smooth overscroll-contain">
             {React.isValidElement(children) 
               ? React.cloneElement(children as React.ReactElement<any>, { session, syncData })
