@@ -83,7 +83,8 @@ const App: React.FC = () => {
           />
           
           <main className="flex-1 overflow-y-auto overflow-x-hidden bg-[#050505] scroll-smooth overscroll-contain no-scrollbar flex flex-col items-center">
-            <div className="w-full max-w-[1400px] min-h-full flex flex-col items-center">
+            {/* Reduzido de 1400px para 1200px para ficar menos espalhado no computador */}
+            <div className="w-full max-w-[1200px] min-h-full flex flex-col items-center">
               {React.isValidElement(children) 
                 ? React.cloneElement(children as React.ReactElement<any>, { session, syncData })
                 : children}

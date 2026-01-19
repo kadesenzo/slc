@@ -120,35 +120,35 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
   return (
     <div className="flex flex-col min-h-screen bg-black text-white items-center w-full">
       {/* Header Centralizado */}
-      <div className="w-full p-8 border-b border-white/5 flex items-center justify-between glass-card sticky top-0 z-50 print:hidden">
-        <button onClick={() => navigate(-1)} className="p-4 bg-white/5 rounded-full text-zinc-500 hover:text-white border border-white/10 transition-all">
-          <ChevronLeft size={24} />
+      <div className="w-full p-6 md:p-8 border-b border-white/5 flex items-center justify-between glass-card sticky top-0 z-50 print:hidden">
+        <button onClick={() => navigate(-1)} className="p-3 bg-white/5 rounded-full text-zinc-500 hover:text-white border border-white/10 transition-all">
+          <ChevronLeft size={20} />
         </button>
-        <h2 className="text-[11px] font-black uppercase tracking-[0.6em] italic text-center">GERADOR <span className="text-[#FF2D55]">KAEN</span></h2>
-        <div className="w-14"></div>
+        <h2 className="text-[10px] font-black uppercase tracking-[0.5em] italic text-center">GERADOR <span className="text-[#FF2D55]">KAEN</span></h2>
+        <div className="w-12"></div>
       </div>
 
-      <div className="flex-1 w-full max-w-4xl p-6 md:p-12 space-y-12 pb-40 flex flex-col items-center">
+      <div className="flex-1 w-full max-w-4xl p-6 md:p-8 space-y-10 pb-40 flex flex-col items-center">
         
         {step === 'CLIENTE' && (
-          <div className="w-full space-y-8 animate-in slide-in-from-bottom-4 duration-500 flex flex-col items-center">
-            <h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter text-center">CLIENTE</h1>
-            <div className="relative glass-card p-2 rounded-full border-white/10 w-full max-w-2xl">
-              <Search className="absolute left-8 top-1/2 -translate-y-1/2 text-zinc-700" size={24} />
+          <div className="w-full max-w-2xl space-y-8 animate-in slide-in-from-bottom-4 duration-500 flex flex-col items-center">
+            <h1 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-center">CLIENTE</h1>
+            <div className="relative glass-card p-1 rounded-full border-white/10 w-full">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-700" size={20} />
               <input 
                 type="text" value={clientSearch} onChange={(e) => setClientSearch(e.target.value)}
                 placeholder="BUSCAR NOME OU WHATSAPP..."
-                className="w-full bg-transparent border-none py-6 pl-20 pr-8 text-white font-black text-xs uppercase outline-none placeholder-zinc-800"
+                className="w-full bg-transparent border-none py-5 pl-16 pr-8 text-white font-black text-[11px] uppercase outline-none placeholder-zinc-800"
               />
             </div>
-            <div className="grid grid-cols-1 gap-4 w-full max-w-2xl">
+            <div className="grid grid-cols-1 gap-4 w-full">
               {filteredClients.map(c => (
-                <button key={c.id} onClick={() => { setSelectedClient(c); setStep('VEICULO'); }} className="w-full p-8 glass-card border-white/5 rounded-[2.5rem] flex items-center justify-between hover:border-[#FF2D55]/50 transition-all group">
+                <button key={c.id} onClick={() => { setSelectedClient(c); setStep('VEICULO'); }} className="w-full p-6 glass-card border-white/5 rounded-[2rem] flex items-center justify-between hover:border-[#FF2D55]/50 transition-all group">
                   <div className="text-left">
-                    <p className="text-2xl font-black italic uppercase group-hover:text-[#FF2D55]">{c.name}</p>
-                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">{c.phone}</p>
+                    <p className="text-xl font-black italic uppercase group-hover:text-[#FF2D55]">{c.name}</p>
+                    <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">{c.phone}</p>
                   </div>
-                  <User size={28} className="text-zinc-800 group-hover:text-[#FF2D55]" />
+                  <User size={24} className="text-zinc-800 group-hover:text-[#FF2D55]" />
                 </button>
               ))}
             </div>
@@ -156,77 +156,77 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
         )}
 
         {step === 'VEICULO' && selectedClient && (
-          <div className="w-full space-y-8 animate-in slide-in-from-right-4 duration-500 flex flex-col items-center">
+          <div className="w-full max-w-2xl space-y-8 animate-in slide-in-from-right-4 duration-500 flex flex-col items-center">
             <div className="text-center">
-              <h1 className="text-4xl md:text-6xl font-black italic uppercase">VEÍCULO</h1>
-              <p className="text-zinc-600 font-black uppercase tracking-widest mt-2">{selectedClient.name}</p>
+              <h1 className="text-4xl md:text-5xl font-black italic uppercase">VEÍCULO</h1>
+              <p className="text-zinc-600 font-black uppercase tracking-widest text-[10px] mt-2">{selectedClient.name}</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
               {clientVehicles.map(v => (
-                <button key={v.id} onClick={() => { setSelectedVehicle(v); setStep('ITENS'); }} className="p-10 glass-card border-white/5 rounded-[3rem] text-center hover:border-[#FF2D55]/50 transition-all group">
-                  <Car size={40} className="mx-auto text-zinc-800 group-hover:text-[#FF2D55] mb-4" />
-                  <p className="text-3xl font-black italic uppercase">{v.plate}</p>
-                  <p className="text-[10px] font-bold text-zinc-600 uppercase mt-2">{v.model}</p>
+                <button key={v.id} onClick={() => { setSelectedVehicle(v); setStep('ITENS'); }} className="p-8 glass-card border-white/5 rounded-[2.5rem] text-center hover:border-[#FF2D55]/50 transition-all group">
+                  <Car size={32} className="mx-auto text-zinc-800 group-hover:text-[#FF2D55] mb-3" />
+                  <p className="text-2xl font-black italic uppercase">{v.plate}</p>
+                  <p className="text-[9px] font-bold text-zinc-600 uppercase mt-2">{v.model}</p>
                 </button>
               ))}
             </div>
-            <button onClick={() => setStep('CLIENTE')} className="w-full py-6 text-zinc-600 font-black uppercase text-[10px] tracking-widest italic hover:text-white">VOLTAR PARA CLIENTES</button>
+            <button onClick={() => setStep('CLIENTE')} className="w-full py-4 text-zinc-700 font-black uppercase text-[9px] tracking-widest italic hover:text-white">VOLTAR PARA CLIENTES</button>
           </div>
         )}
 
         {step === 'ITENS' && selectedVehicle && (
-          <div className="w-full space-y-12 animate-in slide-in-from-right-4 duration-500 flex flex-col items-center">
-            <div className="glass-card p-10 rounded-ios border-white/10 space-y-12 w-full max-w-3xl">
+          <div className="w-full max-w-3xl space-y-10 animate-in slide-in-from-right-4 duration-500 flex flex-col items-center">
+            <div className="glass-card p-8 rounded-ios border-white/10 space-y-10 w-full">
                <div className="flex items-center justify-between">
                  <div>
-                   <h3 className="text-2xl font-black italic uppercase tracking-tighter">{selectedVehicle.plate}</h3>
-                   <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">{selectedClient.name}</p>
+                   <h3 className="text-xl font-black italic uppercase tracking-tighter">{selectedVehicle.plate}</h3>
+                   <p className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">{selectedClient.name}</p>
                  </div>
-                 <button onClick={addItem} className="px-8 py-4 bg-[#FF2D55] rounded-full text-white font-black uppercase text-[10px] tracking-widest flex items-center gap-3 active:scale-90">
-                   <Plus size={18}/> ADICIONAR
+                 <button onClick={addItem} className="px-6 py-3 bg-[#FF2D55] rounded-full text-white font-black uppercase text-[9px] tracking-widest flex items-center gap-2 active:scale-90 transition-all">
+                   <Plus size={16}/> ADICIONAR
                  </button>
                </div>
                <div className="space-y-4">
                  {items.map(item => (
-                   <div key={item.id} className="bg-black p-6 rounded-[2.2rem] border border-white/5 space-y-6">
-                     <input type="text" placeholder="DESCRIÇÃO..." value={item.description} onChange={(e)=>updateItem(item.id, 'description', e.target.value.toUpperCase())} className="w-full bg-transparent text-sm font-black outline-none uppercase italic text-white tracking-widest"/>
+                   <div key={item.id} className="bg-black p-5 rounded-[2rem] border border-white/5 space-y-4">
+                     <input type="text" placeholder="DESCRIÇÃO..." value={item.description} onChange={(e)=>updateItem(item.id, 'description', e.target.value.toUpperCase())} className="w-full bg-transparent text-[11px] font-black outline-none uppercase italic text-white tracking-widest"/>
                      <div className="flex gap-4">
-                        <input type="number" placeholder="QTD" value={item.quantity || ''} onChange={(e)=>updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)} className="w-24 bg-white/5 border border-white/5 p-5 rounded-2xl text-center text-sm font-black text-white outline-none"/>
-                        <input type="number" placeholder="UNITÁRIO" value={item.unitPrice || ''} onChange={(e)=>updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)} className="flex-1 bg-white/5 border border-white/5 p-5 rounded-2xl text-sm font-black text-white outline-none"/>
-                        <button onClick={()=>removeItem(item.id)} className="p-5 text-zinc-800 hover:text-[#FF2D55]"><Trash2 size={24}/></button>
+                        <input type="number" placeholder="QTD" value={item.quantity || ''} onChange={(e)=>updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)} className="w-20 bg-white/5 border border-white/5 p-4 rounded-xl text-center text-[11px] font-black text-white outline-none"/>
+                        <input type="number" placeholder="UNITÁRIO" value={item.unitPrice || ''} onChange={(e)=>updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)} className="flex-1 bg-white/5 border border-white/5 p-4 rounded-xl text-[11px] font-black text-white outline-none"/>
+                        <button onClick={()=>removeItem(item.id)} className="p-4 text-zinc-800 hover:text-[#FF2D55]"><Trash2 size={20}/></button>
                      </div>
                    </div>
                  ))}
                </div>
                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  <div>
-                   <label className="text-[9px] font-black text-zinc-700 tracking-widest uppercase block mb-2">MÃO DE OBRA</label>
-                   <input type="number" value={labor} onChange={(e)=>setLabor(e.target.value)} className="w-full bg-black border border-white/5 p-8 rounded-[2.2rem] text-2xl font-black outline-none text-white italic"/>
+                   <label className="text-[8px] font-black text-zinc-700 tracking-widest uppercase block mb-1.5 ml-1">MÃO DE OBRA</label>
+                   <input type="number" value={labor} onChange={(e)=>setLabor(e.target.value)} className="w-full bg-black border border-white/5 p-6 rounded-[1.8rem] text-xl font-black outline-none text-white italic"/>
                  </div>
                  <div>
-                   <label className="text-[9px] font-black text-zinc-700 tracking-widest uppercase block mb-2">PAGAMENTO</label>
-                   <select value={paymentStatus} onChange={(e)=>setPaymentStatus(e.target.value as PaymentStatus)} className="w-full bg-black border border-white/5 p-8 rounded-[2.2rem] text-[11px] font-black uppercase outline-none text-white italic cursor-pointer">
+                   <label className="text-[8px] font-black text-zinc-700 tracking-widest uppercase block mb-1.5 ml-1">PAGAMENTO</label>
+                   <select value={paymentStatus} onChange={(e)=>setPaymentStatus(e.target.value as PaymentStatus)} className="w-full bg-black border border-white/5 p-6 rounded-[1.8rem] text-[10px] font-black uppercase outline-none text-white italic cursor-pointer">
                      <option value={PaymentStatus.PENDENTE}>PENDENTE</option>
                      <option value={PaymentStatus.PAGO}>PAGO</option>
                    </select>
                  </div>
                </div>
-               <div className="p-12 bg-white/5 rounded-ios border border-white/5 flex flex-col items-center gap-2">
-                 <span className="text-[10px] font-black text-zinc-700 uppercase tracking-widest italic">VALOR TOTAL</span>
-                 <span className="text-6xl font-black italic">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+               <div className="p-10 bg-white/5 rounded-ios border border-white/5 flex flex-col items-center gap-1">
+                 <span className="text-[9px] font-black text-zinc-700 uppercase tracking-widest italic">VALOR TOTAL</span>
+                 <span className="text-5xl font-black italic">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                </div>
-               <button onClick={handleFinalize} disabled={isSaving} className="w-full bg-[#FF2D55] py-8 rounded-ios font-black uppercase text-xs tracking-[0.6em] flex items-center justify-center gap-6 active:scale-95 italic">
-                 {isSaving ? <Loader2 className="animate-spin" size={30}/> : <Check size={30}/>} FINALIZAR NOTA
+               <button onClick={handleFinalize} disabled={isSaving} className="w-full bg-[#FF2D55] py-6 rounded-ios font-black uppercase text-[10px] tracking-[0.5em] flex items-center justify-center gap-5 active:scale-95 italic">
+                 {isSaving ? <Loader2 className="animate-spin" size={24}/> : <Check size={24}/>} FINALIZAR NOTA
                </button>
             </div>
           </div>
         )}
 
         {step === 'FINAL' && finalOs && (
-          <div className="w-full flex flex-col items-center gap-16 animate-in fade-in duration-700">
+          <div className="w-full flex flex-col items-center gap-12 animate-in fade-in duration-700">
              <div className="invoice-preview-container">
                <div className="invoice-scale-wrapper">
-                 <div ref={invoiceRef} className="kaen-invoice shadow-[0_60px_150px_rgba(0,0,0,0.5)]">
+                 <div ref={invoiceRef} className="kaen-invoice shadow-[0_40px_100px_rgba(0,0,0,0.5)]">
                     {/* Header Kaen */}
                     <div className="flex justify-between items-start mb-10 border-b border-zinc-100 pb-8">
                        <div className="flex gap-5 items-center">
@@ -322,11 +322,11 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
                </div>
              </div>
 
-             <div className="w-full max-w-[600px] flex flex-col gap-4 px-4">
-                <button onClick={downloadImage} className="w-full bg-white text-black py-8 rounded-ios font-black uppercase text-xs tracking-[0.6em] flex items-center justify-center gap-5 shadow-2xl active:scale-95 italic">
-                   <ImageIcon size={30}/> SALVAR IMAGEM (WHATSAPP)
+             <div className="w-full max-w-[500px] flex flex-col gap-4 px-4">
+                <button onClick={downloadImage} className="w-full bg-white text-black py-6 rounded-ios font-black uppercase text-[10px] tracking-[0.4em] flex items-center justify-center gap-4 shadow-2xl active:scale-95 italic transition-all">
+                   <ImageIcon size={24}/> SALVAR IMAGEM (WHATSAPP)
                 </button>
-                <button onClick={() => navigate('/dashboard')} className="glass-card py-6 rounded-ios font-black uppercase text-[10px] tracking-[0.4em] flex items-center justify-center hover:bg-white/5 italic">VOLTAR AO PAINEL</button>
+                <button onClick={() => navigate('/dashboard')} className="glass-card py-5 rounded-ios font-black uppercase text-[9px] tracking-[0.4em] flex items-center justify-center hover:bg-white/5 italic transition-all">VOLTAR AO PAINEL</button>
              </div>
           </div>
         )}
