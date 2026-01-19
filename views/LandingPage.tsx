@@ -1,271 +1,130 @@
 
-import React, { useState } from 'react';
-import { 
-  Wrench, 
-  ShieldCheck, 
-  Clock, 
-  Award, 
-  MapPin, 
-  Phone, 
-  MessageCircle,
-  Menu,
-  X,
-  Lock,
-  ArrowRight,
-  Search,
-  CheckCircle2
-} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ChevronDown, Wrench } from 'lucide-react';
 
-const LandingPage: React.FC<{ onLogin: () => void }> = () => {
+const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchPlate, setSearchPlate] = useState('');
-  const [searchResult, setSearchResult] = useState<any>(null);
+  const [splashStep, setSplashStep] = useState(0);
 
-  const services = [
-    { title: 'Revisão Premium', icon: ShieldCheck, desc: 'Checkup preventivo computadorizado em mais de 60 itens.' },
-    { title: 'Lubrificantes', icon: Clock, desc: 'Troca de óleo e filtros com as marcas homologadas.' },
-    { title: 'Injeção Eletrônica', icon: Wrench, desc: 'Diagnóstico avançado com scanners de última geração.' },
-    { title: 'Freios e Suspensão', icon: Award, desc: 'Segurança absoluta para você e sua família na estrada.' },
-  ];
-
-  const handleConsult = () => {
-    if (!searchPlate) return;
-    const orders = JSON.parse(localStorage.getItem('kaenpro_orders') || '[]');
-    const found = orders.find((o: any) => o.vehiclePlate.replace('-', '') === searchPlate.toUpperCase().replace('-', ''));
+  useEffect(() => {
+    // Sequência de Intro exata do vídeo
+    const timer1 = setTimeout(() => setSplashStep(1), 2200);
+    const timer2 = setTimeout(() => setSplashStep(2), 4400);
     
-    if (found) {
-      setSearchResult(found);
-    } else {
-      alert("Nenhum serviço em andamento encontrado para esta placa.");
-    }
-  };
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, []);
 
-  const closeMenu = () => setMobileMenuOpen(false);
+  // Splash Screen 1: Iniciando
+  if (splashStep === 0) {
+    return (
+      <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-[1000] p-6">
+        <div className="splash-text flex flex-col items-center text-center">
+          <p className="text-zinc-700 text-[9px] font-black uppercase tracking-[0.8em] mb-4 italic">INICIANDO ECOSSISTEMA</p>
+          <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter text-white">
+            KAEN<span className="text-[#FF2D55]">PRO</span>
+          </h1>
+        </div>
+      </div>
+    );
+  }
 
+  // Splash Screen 2: Bem-vindo
+  if (splashStep === 1) {
+    return (
+      <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-[1000] p-6">
+        <div className="splash-text flex flex-col items-center text-center">
+          <h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter text-white">BEM-VINDO À</h1>
+          <h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter text-[#FF2D55]">NETWORK</h1>
+        </div>
+      </div>
+    );
+  }
+
+  // Landing Principal Estilo Kades/Elite
   return (
-    <div className="min-h-screen bg-[#0B0B0B] text-white selection:bg-[#A32121] font-['Inter']">
-      {/* Navbar */}
-      <nav className="fixed top-0 w-full z-[100] bg-[#0B0B0B]/95 backdrop-blur-md border-b border-zinc-800/50">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-9 h-9 bg-[#A32121] rounded-xl flex items-center justify-center shadow-lg shadow-red-900/20">
-              <Wrench size={20} className="text-white" />
-            </div>
-            <span className="text-2xl font-black tracking-tighter">KAEN<span className="text-[#A32121]">PRO</span></span>
+    <div className="relative min-h-screen flex flex-col bg-black overflow-hidden selection:bg-[#FF2D55]">
+      
+      {/* Top Bar Elite */}
+      <header className="fixed top-0 left-0 w-full p-8 md:p-12 flex justify-between items-center z-50">
+        <div className="reveal-node flex items-center gap-2" style={{ animationDelay: '0.2s' }}>
+          <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center shadow-2xl">
+            <span className="text-white font-black text-sm italic">K<span className="text-[#FF2D55]">P</span></span>
           </div>
+        </div>
+        <button 
+          onClick={() => navigate('/login')}
+          className="reveal-node btn-elite px-8 py-3.5 rounded-2xl text-white font-black uppercase text-[10px] tracking-widest shadow-2xl"
+          style={{ animationDelay: '0.4s' }}
+        >
+          ACESSO ELITE
+        </button>
+      </header>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-10 text-xs font-black uppercase tracking-widest">
-            <a href="#services" className="text-zinc-400 hover:text-white transition-colors">Serviços</a>
-            <a href="#consult" className="text-zinc-400 hover:text-white transition-colors">Consultar Placa</a>
-            <a href="#location" className="text-zinc-400 hover:text-white transition-colors">Localização</a>
-            <button 
-              onClick={() => navigate('/login')}
-              className="bg-white text-black px-6 py-2.5 rounded-full hover:bg-[#A32121] hover:text-white transition-all flex items-center space-x-2"
-            >
-              <Lock size={14} />
-              <span>Acesso Oficina</span>
-            </button>
+      {/* Centro Hero Centralizado Mobile */}
+      <main className="flex-1 flex flex-col items-center justify-center text-center px-6 md:px-12 relative z-10 w-full">
+        
+        {/* Badge de Protocolo */}
+        <div className="reveal-node mb-10" style={{ animationDelay: '0.6s' }}>
+          <div className="bg-white/5 border border-white/10 px-8 py-2.5 rounded-full flex items-center gap-4">
+            <div className="w-6 h-[1.5px] bg-[#FF2D55]"></div>
+            <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.5em] italic">PROTOCOLO DE ELITE V26.0</span>
+            <div className="w-6 h-[1.5px] bg-[#FF2D55]"></div>
           </div>
+        </div>
 
-          {/* Mobile Menu Toggle */}
+        {/* Nome Principal Massivo */}
+        <h1 className="reveal-node text-[18vw] md:text-[11rem] font-black italic uppercase tracking-tighter text-white leading-[0.8] mb-10 select-none" style={{ animationDelay: '0.8s' }}>
+          KAEN<br className="md:hidden" /><span className="text-[#FF2D55]">PRO</span>
+          <span className="block md:inline text-[10vw] md:text-[11rem] text-zinc-900 md:text-white md:opacity-100 opacity-20"> NETWORK</span>
+        </h1>
+
+        {/* Subtítulo Estilo Kades */}
+        <div className="reveal-node max-w-2xl mb-16 px-4" style={{ animationDelay: '1s' }}>
+          <p className="text-zinc-500 font-bold text-sm md:text-lg uppercase tracking-widest leading-relaxed italic">
+            Ecossistema proprietário de alta performance para formação e gestão de oficinas digitais.
+          </p>
+        </div>
+
+        {/* Menu Técnico Inferior Centralizado */}
+        <div className="reveal-node flex justify-center gap-12 md:gap-20 mb-16 text-zinc-800 font-black text-[10px] uppercase tracking-[0.6em] italic" style={{ animationDelay: '1.2s' }}>
+          <span>PROTOCOLO</span>
+          <span>SISTEMA</span>
+          <span>REDE</span>
+        </div>
+
+        {/* Botão de Ação Central iOS 26 */}
+        <div className="reveal-node w-full flex justify-center" style={{ animationDelay: '1.4s' }}>
           <button 
-            className="md:hidden p-2 text-zinc-400 hover:text-white transition-colors" 
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle Menu"
+            onClick={() => navigate('/login')}
+            className="glass-card px-16 py-8 rounded-ios text-white font-black uppercase text-xs tracking-[0.6em] hover:bg-white hover:text-black transition-all active:scale-95 shadow-[0_50px_100px_rgba(0,0,0,0.8)] border-white/10 italic"
           >
-            {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+            ACESSAR SISTEMA
           </button>
         </div>
 
-        {/* Mobile Menu Overlay */}
-        {mobileMenuOpen && (
-          <div className="fixed inset-0 top-20 bg-[#0B0B0B] z-[90] md:hidden animate-in fade-in slide-in-from-top duration-300">
-            <div className="flex flex-col p-8 space-y-8 text-center">
-              <a 
-                href="#services" 
-                onClick={closeMenu}
-                className="text-lg font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-[#A32121] transition-colors"
-              >
-                Serviços
-              </a>
-              <a 
-                href="#consult" 
-                onClick={closeMenu}
-                className="text-lg font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-[#A32121] transition-colors"
-              >
-                Consultar Placa
-              </a>
-              <a 
-                href="#location" 
-                onClick={closeMenu}
-                className="text-lg font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-[#A32121] transition-colors"
-              >
-                Localização
-              </a>
-              
-              <div className="pt-8 border-t border-zinc-800">
-                <button 
-                  onClick={() => {
-                    closeMenu();
-                    navigate('/login');
-                  }}
-                  className="w-full bg-[#A32121] py-6 rounded-3xl font-black uppercase text-sm tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl shadow-red-900/20 active:scale-95 transition-transform"
-                >
-                  <Lock size={20} />
-                  Acesso Oficina
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </nav>
-
-      {/* Hero */}
-      <section className="pt-48 md:pt-60 pb-20 px-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#A32121]/10 rounded-full blur-[120px] -z-10 animate-pulse"></div>
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
-          <div className="space-y-8">
-            <div className="inline-flex items-center space-x-2 bg-zinc-900/50 border border-zinc-800 px-4 py-2 rounded-full">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-              </span>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Atendimento Aberto até 18:00</span>
-            </div>
-            <h1 className="text-5xl md:text-8xl font-black leading-none tracking-tighter">
-              Performance <br />
-              <span className="text-zinc-600">sem limites.</span>
-            </h1>
-            <p className="text-lg text-zinc-400 max-w-md leading-relaxed">
-              Mecânica de precisão para quem não aceita menos que a perfeição. Diagnóstico digital e equipe certificada.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <a 
-                href="https://wa.me/5511999999999" 
-                className="bg-[#A32121] px-10 py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 hover:bg-[#8B1A1A] transition-all transform active:scale-95 shadow-xl shadow-red-900/30"
-              >
-                <MessageCircle size={20} />
-                Agendar WhatsApp
-              </a>
-              <a href="#services" className="bg-zinc-900 border border-zinc-800 px-10 py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-widest flex items-center justify-center hover:bg-zinc-800 transition-all">
-                Nossos Serviços
-              </a>
-            </div>
-          </div>
-          <div className="relative group hidden md:block">
-            <div className="absolute -inset-4 bg-[#A32121]/20 rounded-[3rem] blur-2xl group-hover:bg-[#A32121]/30 transition-all"></div>
-            <img 
-              src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?q=80&w=1200&auto=format&fit=crop" 
-              alt="Engine repair" 
-              className="relative rounded-[2.5rem] border border-zinc-800 shadow-2xl grayscale hover:grayscale-0 transition-all duration-700"
-            />
-          </div>
+        {/* Scroll Indicator */}
+        <div className="reveal-node absolute bottom-12 flex flex-col items-center gap-3 opacity-10" style={{ animationDelay: '1.8s' }}>
+           <span className="text-[8px] font-black uppercase tracking-[0.8em]">SCROLL DOWN</span>
+           <ChevronDown size={22} className="animate-bounce" />
         </div>
-      </section>
+      </main>
 
-      {/* Consulta de Placa */}
-      <section id="consult" className="py-24 px-6 bg-zinc-950">
-        <div className="max-w-4xl mx-auto bg-zinc-900 border border-zinc-800 p-8 md:p-16 rounded-[3rem] shadow-2xl text-center">
-            <h2 className="text-3xl font-black mb-4 uppercase tracking-tighter">Consulte seu Veículo</h2>
-            <p className="text-zinc-500 mb-10 font-bold uppercase text-[10px] tracking-widest">Acompanhe o status do serviço em tempo real</p>
-            
-            <div className="flex flex-col md:flex-row gap-4 max-w-lg mx-auto mb-10">
-                <input 
-                  type="text" 
-                  value={searchPlate}
-                  onChange={(e) => setSearchPlate(e.target.value.toUpperCase())}
-                  placeholder="DIGITE A PLACA (Ex: ABC1D23)" 
-                  className="flex-1 bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-center text-xl font-black tracking-widest focus:border-[#A32121] outline-none transition-all uppercase"
-                />
-                <button 
-                  onClick={handleConsult}
-                  className="bg-[#A32121] p-4 rounded-2xl hover:bg-[#8B1A1A] transition-all flex items-center justify-center"
-                >
-                  <Search size={24} />
-                </button>
-            </div>
-
-            {searchResult && (
-              <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-8 animate-in zoom-in duration-300 text-left">
-                  <div className="flex justify-between items-start mb-6 border-b border-zinc-800 pb-4">
-                      <div>
-                          <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Veículo</p>
-                          <h4 className="text-xl font-black">{searchResult.vehicleModel}</h4>
-                      </div>
-                      <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest">
-                        {searchResult.status}
-                      </span>
-                  </div>
-                  <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                          <CheckCircle2 size={18} className="text-emerald-500" />
-                          <p className="text-sm font-bold text-zinc-400">Diagnóstico finalizado e autorizado.</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                          <Clock size={18} className="text-amber-500" />
-                          <p className="text-sm font-bold text-zinc-400">Entrega prevista para hoje às 17h.</p>
-                      </div>
-                  </div>
-              </div>
-            )}
-        </div>
-      </section>
-
-      {/* Services Grid */}
-      <section id="services" className="py-24 px-6 bg-[#0B0B0B]">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-xs font-black text-[#A32121] uppercase tracking-[0.4em] mb-4">Excelência Técnica</h2>
-            <h3 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">Serviços Especializados</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {services.map((s, i) => (
-              <div key={i} className="bg-zinc-900/50 border border-zinc-800 p-8 rounded-[2rem] hover:bg-zinc-900 transition-all group">
-                <div className="w-12 h-12 bg-[#A32121]/10 text-[#A32121] rounded-xl flex items-center justify-center mb-6 group-hover:bg-[#A32121] group-hover:text-white transition-all">
-                  <s.icon size={24} />
-                </div>
-                <h4 className="text-xl font-black mb-3 uppercase tracking-tight">{s.title}</h4>
-                <p className="text-zinc-500 text-sm leading-relaxed">{s.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer id="location" className="py-20 px-6 border-t border-zinc-900 bg-black">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-16">
-          <div className="space-y-6">
-             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-[#A32121] rounded-xl flex items-center justify-center">
-                <Wrench size={18} className="text-white" />
-              </div>
-              <span className="text-xl font-black">KAEN<span className="text-[#A32121]">PRO</span></span>
-            </div>
-            <p className="text-zinc-600 text-sm font-medium leading-relaxed">
-              Elevando o padrão de manutenção automotiva. Tecnologia alemã aplicada à frota brasileira.
-            </p>
-          </div>
-          <div className="space-y-4">
-            <h4 className="text-xs font-black uppercase tracking-widest text-[#A32121]">Onde Estamos</h4>
-            <p className="text-zinc-500 text-sm font-bold">Rua dos Motores, 1234 - São Paulo, SP</p>
-            <p className="text-zinc-500 text-sm font-bold">(11) 99999-9999 • contato@kaenpro.com</p>
-          </div>
-          <div className="space-y-4">
-            <h4 className="text-xs font-black uppercase tracking-widest text-zinc-400">Siga-nos</h4>
-            <div className="flex space-x-4">
-               <a href="#" className="p-3 bg-zinc-900 rounded-full hover:bg-[#A32121] transition-all"><MapPin size={18} /></a>
-               <a href="#" className="p-3 bg-zinc-900 rounded-full hover:bg-[#A32121] transition-all"><MessageCircle size={18} /></a>
-            </div>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-zinc-900 text-center">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-700">© 2024 Kaenpro Motors • Powered by HighTech Auto</p>
-        </div>
+      {/* Footer Técnico Fiel ao Vídeo */}
+      <footer className="fixed bottom-8 left-0 w-full text-center px-8">
+        <p className="reveal-node text-[8px] font-bold text-zinc-900 uppercase tracking-[0.5em] italic" style={{ animationDelay: '2s' }}>
+          © 2024 KAENPRO NETWORK • CORE ENGINE • PROTOCOLO ELITE
+        </p>
       </footer>
+
+      {/* Background Decorativo Estilo Bionico */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[160%] h-[160%] bg-[radial-gradient(circle_at_center,rgba(255,45,85,0.04)_0%,transparent_70%)]"></div>
+        <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+      </div>
     </div>
   );
 };

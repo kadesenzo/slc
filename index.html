@@ -4,78 +4,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Kaenpro - Bionic Edge Management</title>
+    <title>Kaenpro - Protocolo Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --brand-red: #FF2D55; /* iOS System Red */
-            --brand-red-deep: #D00036;
+            --brand-red: #FF2D55;
             --bg-main: #000000;
-            --bg-card: rgba(20, 20, 22, 0.7);
-            --ios-blur: blur(40px) saturate(180%);
-            --ios-radius: 3.5rem; /* Ultra-premium curves */
-            --ios-border: 1px solid rgba(255, 255, 255, 0.08);
+            --ios-radius: 3.5rem;
         }
         
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--bg-main);
             color: #ffffff;
             margin: 0;
-            padding: 0;
             overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
-            overscroll-behavior-y: contain;
-            letter-spacing: -0.01em;
-        }
-
-        /* iOS Squircle-like Smoothing */
-        .rounded-ios {
-            border-radius: var(--ios-radius);
-        }
-
-        .glass-card {
-            background: var(--bg-card);
-            backdrop-filter: var(--ios-blur);
-            -webkit-backdrop-filter: var(--ios-blur);
-            border: var(--ios-border);
-        }
-
-        .active-glow { 
-            box-shadow: 0 0 40px rgba(255, 45, 85, 0.15); 
-        }
-
-        .no-scrollbar::-webkit-scrollbar { 
-            display: none; 
-        }
-
-        /* Smooth iOS Momentum Scrolling */
-        * { 
-            scroll-behavior: smooth;
             -webkit-font-smoothing: antialiased;
         }
+
+        .rounded-ios { border-radius: var(--ios-radius); }
+        .rounded-ios-inner { border-radius: 2.2rem; }
+
+        .glass-card {
+            background: rgba(15, 15, 17, 0.7);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Animações de Splash Estilo Kades */
+        @keyframes splashFade {
+            0% { opacity: 0; filter: blur(20px); transform: scale(0.9); }
+            20% { opacity: 1; filter: blur(0); transform: scale(1); }
+            80% { opacity: 1; filter: blur(0); transform: scale(1); }
+            100% { opacity: 0; filter: blur(10px); transform: scale(1.05); }
+        }
+
+        .splash-text {
+            animation: splashFade 2.2s cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+
+        .reveal-node {
+            opacity: 0;
+            animation: revealNode 1s cubic-bezier(0.2, 0, 0, 1) forwards;
+        }
+
+        @keyframes revealNode {
+            from { opacity: 0; transform: translateY(30px); filter: blur(10px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+
+        /* Botão Vermelho Estilo Vídeo */
+        .btn-elite {
+            background: var(--brand-red);
+            box-shadow: 0 15px 35px rgba(255, 45, 85, 0.3);
+            transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        .btn-elite:active { transform: scale(0.92); opacity: 0.8; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        * { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
         
-        main {
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-
-        /* iOS-style slide animations */
-        .animate-ios-slide {
-            animation: iosSlide 500ms cubic-bezier(0.32, 0.72, 0, 1);
-        }
-
-        @keyframes iosSlide {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        /* Hover effects for premium feel */
-        .hover-scale {
-            transition: transform 300ms cubic-bezier(0.2, 0, 0, 1);
-        }
-        .hover-scale:active {
-            transform: scale(0.96);
+        .active-glow:active {
+            box-shadow: 0 0 50px rgba(255, 45, 85, 0.4);
+            transform: scale(0.95);
         }
     </style>
 <script type="importmap">
