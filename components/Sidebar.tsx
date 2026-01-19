@@ -31,72 +31,81 @@ const Sidebar: React.FC<SidebarProps> = ({ role, isOpen, onClose }) => {
 
   return (
     <>
+      {/* Overlay Mobile */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[140] animate-in fade-in duration-300" 
+          className="fixed inset-0 bg-black/80 backdrop-blur-md z-[140] animate-in fade-in duration-500 lg:hidden" 
           onClick={onClose} 
         />
       )}
 
+      {/* Sidebar Flutuante iOS 26 */}
       <aside className={`
-        fixed inset-y-4 left-4 z-[150] w-[18rem] glass-card rounded-ios transition-all duration-500 transform ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col overflow-hidden
-        ${isOpen ? 'translate-x-0 opacity-100' : '-translate-x-[110%] opacity-0 pointer-events-none'}
+        fixed inset-y-6 left-6 z-[150] w-[20rem] glass-card rounded-ios transition-all duration-700 transform ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.8)] border-white/10
+        ${isOpen ? 'translate-x-0 opacity-100' : '-translate-x-[120%] opacity-0 pointer-events-none lg:translate-x-0 lg:opacity-100 lg:pointer-events-auto'}
+        lg:relative lg:inset-y-0 lg:left-0 lg:m-6 lg:mr-0
       `}>
-        <div className="p-8 flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center space-x-3">
-            <div className="w-11 h-11 bg-[#FF2D55] rounded-2xl flex items-center justify-center shadow-lg shadow-[#FF2D55]/30">
-              <Wrench className="text-white w-6 h-6" />
+        <div className="p-10 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-[#FF2D55] rounded-2xl flex items-center justify-center shadow-lg shadow-[#FF2D55]/30 group transition-transform duration-700 hover:rotate-12 border border-white/20">
+              <Wrench className="text-white w-7 h-7" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-black tracking-tight text-white uppercase italic leading-none">
+              <span className="text-2xl font-black tracking-tighter text-white uppercase italic leading-none">
                 KAEN<span className="text-[#FF2D55]">PRO</span>
               </span>
-              <span className="text-[7px] font-bold text-zinc-500 uppercase tracking-widest">Bionic OS 26</span>
+              <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-[0.3em] mt-1">PROTOCOLO ELITE</span>
             </div>
           </div>
           <button 
             onClick={onClose} 
-            className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-zinc-400 transition-colors"
+            className="p-3 bg-white/5 hover:bg-[#FF2D55] rounded-full text-zinc-500 hover:text-white transition-all active:scale-90 lg:hidden"
           >
-            <X size={18}/>
+            <X size={20}/>
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-4 space-y-2 no-scrollbar scroll-smooth pb-10">
+        <nav className="flex-1 overflow-y-auto px-6 space-y-3 no-scrollbar scroll-smooth pb-12">
           {filteredItems.map((item) => (
             <NavLink
               key={item.path} to={item.path} onClick={onClose}
               className={({ isActive }) => `
-                flex items-center justify-between px-5 py-4 rounded-[1.8rem] transition-all duration-300 group
+                flex items-center justify-between px-6 py-5 rounded-[2.2rem] transition-all duration-500 group relative
                 ${isActive 
-                  ? 'bg-[#FF2D55] text-white shadow-xl shadow-[#FF2D55]/20' 
+                  ? 'bg-[#FF2D55] text-white shadow-[0_20px_50px_rgba(255,45,85,0.3)]' 
                   : 'text-zinc-500 hover:bg-white/5 hover:text-white'}
               `}
             >
               {({ isActive }) => (
                 <>
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-5">
                     <item.icon 
-                      size={20} 
+                      size={22} 
                       className={isActive ? 'text-white' : 'text-zinc-600 group-hover:text-[#FF2D55] transition-colors'} 
                     />
-                    <span className="font-bold text-[10px] uppercase tracking-[0.12em] italic">
+                    <span className="font-black text-[11px] uppercase tracking-[0.15em] italic">
                       {item.name}
                     </span>
                   </div>
-                  {isActive && <ChevronRight size={14} className="opacity-50" />}
+                  {isActive && (
+                    <div className="w-2 h-2 bg-white rounded-full shadow-[0_0_15px_white] animate-pulse"></div>
+                  )}
                 </>
               )}
             </NavLink>
           ))}
         </nav>
 
-        <div className="p-6 mt-auto border-t border-white/5 bg-white/[0.02]">
-          <div className="flex items-center space-x-4 p-4 rounded-3xl hover:bg-white/5 cursor-pointer text-zinc-500 group transition-all">
-            <div className="p-2 bg-white/5 rounded-xl group-hover:text-white group-hover:rotate-45 transition-all duration-500">
-              <Settings size={18} />
+        {/* Rodapé do Sidebar */}
+        <div className="p-8 mt-auto border-t border-white/5 bg-white/[0.01]">
+          <div className="flex items-center space-x-5 p-5 rounded-[2rem] hover:bg-white/5 cursor-pointer text-zinc-600 group transition-all duration-500 border border-transparent hover:border-white/5 shadow-inner">
+            <div className="p-3 bg-white/5 rounded-2xl group-hover:text-white group-hover:rotate-90 transition-all duration-700 shadow-md">
+              <Settings size={20} />
             </div>
-            <span className="text-[9px] font-black uppercase tracking-widest italic">Ajustes do Núcleo</span>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-widest italic text-zinc-400">CONFIGURAÇÃO</span>
+              <span className="text-[8px] font-bold text-zinc-700 uppercase tracking-[0.2em]">NÚCLEO V26.0</span>
+            </div>
           </div>
         </div>
       </aside>

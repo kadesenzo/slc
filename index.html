@@ -21,11 +21,19 @@
             margin: 0;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
+            display: flex;
+            justify-content: center;
+        }
+
+        #root { 
+            width: 100%; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
         }
 
         .rounded-ios { border-radius: var(--ios-radius); }
-        .rounded-ios-inner { border-radius: 2.2rem; }
-
+        
         .glass-card {
             background: rgba(15, 15, 17, 0.7);
             backdrop-filter: blur(40px) saturate(180%);
@@ -33,40 +41,61 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        @keyframes splashFade {
-            0% { opacity: 0; filter: blur(20px); transform: scale(0.9); }
-            20% { opacity: 1; filter: blur(0); transform: scale(1); }
-            80% { opacity: 1; filter: blur(0); transform: scale(1); }
-            100% { opacity: 0; filter: blur(10px); transform: scale(1.05); }
-        }
-
-        .splash-text {
-            animation: splashFade 2.2s cubic-bezier(0.2, 0, 0, 1) forwards;
-        }
-
-        .reveal-node {
-            opacity: 0;
-            animation: revealNode 1s cubic-bezier(0.2, 0, 0, 1) forwards;
-        }
-
-        @keyframes revealNode {
-            from { opacity: 0; transform: translateY(30px); filter: blur(10px); }
-            to { opacity: 1; transform: translateY(0); filter: blur(0); }
-        }
-
-        .btn-elite {
-            background: var(--brand-red);
-            box-shadow: 0 15px 35px rgba(255, 45, 85, 0.3);
-            transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-        }
-        .btn-elite:active { transform: scale(0.92); opacity: 0.8; }
-
         .no-scrollbar::-webkit-scrollbar { display: none; }
         * { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
         
-        .active-glow:active {
-            box-shadow: 0 0 50px rgba(255, 45, 85, 0.4);
-            transform: scale(0.95);
+        /* Centralização Universal */
+        main {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            width: 100% !important;
+        }
+
+        /* Container da Nota Kaen */
+        .kaen-invoice {
+            width: 800px;
+            min-height: 800px;
+            background: white;
+            color: black;
+            padding: 3.5rem;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+            border-radius: 0.5rem;
+        }
+
+        /* Escalonamento Inteligente do Preview */
+        .invoice-preview-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            overflow: visible;
+        }
+
+        @media (max-width: 850px) {
+            .invoice-scale-wrapper {
+                transform: scale(0.45);
+                transform-origin: top center;
+                margin-bottom: -420px;
+            }
+        }
+
+        @media (max-width: 450px) {
+            .invoice-scale-wrapper {
+                transform: scale(0.38);
+                margin-bottom: -480px;
+            }
+        }
+        
+        @media (min-width: 851px) {
+            .invoice-scale-wrapper {
+                transform: scale(0.85);
+                transform-origin: top center;
+                margin-bottom: -100px;
+            }
         }
     </style>
 <script type="importmap">

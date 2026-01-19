@@ -1,7 +1,8 @@
 {
   "name": "Kaenpro Bionic - Elite Garage OS",
-  "description": "Premium garage management system with iOS Bionic 26 aesthetics, neural analytics, and ultra-smooth performance.",
+  "description": "Premium garage management system with iOS Bionic 26 aesthetics, neural analytics, and floating squircle design.",
   "requestFramePermissions": [
-    "camera"
+    "camera",
+    "microphone"
   ]
 }

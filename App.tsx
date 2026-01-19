@@ -16,7 +16,7 @@ import Billing from './views/Billing';
 import Financial from './views/Financial';
 import Calendar from './views/Calendar';
 import MechanicTerminal from './views/MechanicTerminal';
-import Sidebar from './Sidebar'; // Corrigido: Sidebar está na raiz
+import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import { SyncStatus, UserSession } from './types';
 
@@ -66,10 +66,14 @@ const App: React.FC = () => {
     if (!session) return <Navigate to="/login" replace />;
 
     return (
-      <div className="flex h-screen bg-[#0B0B0B] overflow-hidden">
-        <Sidebar role={session.role} isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <div className="flex h-screen bg-black overflow-hidden relative">
+        <Sidebar 
+          role={session.role} 
+          isOpen={isSidebarOpen} 
+          onClose={() => setIsSidebarOpen(false)} 
+        />
         
-        <div className="flex-1 flex flex-col overflow-hidden relative">
+        <div className="flex-1 flex flex-col min-w-0 relative">
           <Header 
             role={session.role} 
             username={session.username}
@@ -78,10 +82,12 @@ const App: React.FC = () => {
             onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           />
           
-          <main className="flex-1 overflow-y-auto no-scrollbar bg-zinc-950 scroll-smooth overscroll-contain">
-            {React.isValidElement(children) 
-              ? React.cloneElement(children as React.ReactElement<any>, { session, syncData })
-              : children}
+          <main className="flex-1 overflow-y-auto overflow-x-hidden bg-[#050505] scroll-smooth overscroll-contain no-scrollbar flex flex-col items-center">
+            <div className="w-full max-w-[1400px] min-h-full flex flex-col items-center">
+              {React.isValidElement(children) 
+                ? React.cloneElement(children as React.ReactElement<any>, { session, syncData })
+                : children}
+            </div>
           </main>
         </div>
       </div>

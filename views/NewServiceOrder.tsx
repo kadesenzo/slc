@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
-  Plus, Trash2, Wrench, ChevronLeft, ChevronRight, X,
-  User, Search, Loader2, Printer, Check, ImageIcon, MessageCircle
+  Plus, Trash2, Wrench, ChevronLeft, X,
+  User, Search, Loader2, Check, ImageIcon, Car
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Client, Vehicle, OSItem, OSStatus, ServiceOrder, PaymentStatus, UserSession } from '../types';
@@ -12,17 +12,16 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
   const navigate = useNavigate();
   const invoiceRef = useRef<HTMLDivElement>(null);
   
-  const [step, setStep] = useState<'CLIENTE' | 'ITENS' | 'FINAL'>('CLIENTE');
-  
+  const [step, setStep] = useState<'CLIENTE' | 'VEICULO' | 'ITENS' | 'FINAL'>('CLIENTE');
   const [clients, setClients] = useState<Client[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [clientSearch, setClientSearch] = useState('');
+  
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   
   const [items, setItems] = useState<OSItem[]>([]);
   const [labor, setLabor] = useState<string>('0');
-  const [discount, setDiscount] = useState<string>('0');
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(PaymentStatus.PENDENTE);
   
   const [finalOs, setFinalOs] = useState<ServiceOrder | null>(null);
@@ -51,9 +50,8 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
 
   const totalValue = useMemo(() => {
     const itemsTotal = items.reduce((acc, curr) => acc + (curr.quantity * curr.unitPrice), 0);
-    const subtotal = itemsTotal + (parseFloat(labor) || 0);
-    return Math.max(0, subtotal - (parseFloat(discount) || 0));
-  }, [items, labor, discount]);
+    return itemsTotal + (parseFloat(labor) || 0);
+  }, [items, labor]);
 
   const addItem = () => {
     setItems([...items, { id: Math.random().toString(36).substr(2, 9), description: '', quantity: 1, unitPrice: 0, type: 'SERVICE' }]);
@@ -72,11 +70,9 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
     
     setIsSaving(true);
     try {
-      const osNumber = `KP-${Math.floor(100000 + Math.random() * 900000)}`;
-      const osId = Math.random().toString(36).substr(2, 9);
-
+      const osNumber = `${Math.floor(100000 + Math.random() * 899999)}`;
       const os: ServiceOrder = {
-        id: osId,
+        id: Math.random().toString(36).substr(2, 9),
         osNumber,
         clientId: selectedClient.id,
         clientName: selectedClient.name,
@@ -84,10 +80,10 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
         vehiclePlate: selectedVehicle.plate,
         vehicleModel: selectedVehicle.model,
         vehicleKm: selectedVehicle.km.toString(),
-        problem: 'Serviços de Manutenção Bionica',
+        problem: 'MANUTENÇÃO KAEN MECÂNICA',
         items,
         laborValue: parseFloat(labor) || 0,
-        discount: parseFloat(discount) || 0,
+        discount: 0,
         totalValue,
         status: OSStatus.FINALIZADO,
         paymentStatus,
@@ -101,7 +97,7 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
       setFinalOs(os);
       setStep('FINAL');
     } catch (error) {
-      alert("Erro na sincronização.");
+      alert("ERRO NA GERAÇÃO.");
     } finally {
       setIsSaving(false);
     }
@@ -109,306 +105,232 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
 
   const downloadImage = async () => {
     if (!invoiceRef.current) return;
-    const canvas = await html2canvas(invoiceRef.current, { scale: 3, backgroundColor: '#ffffff', useCORS: true, windowWidth: 800, height: invoiceRef.current.offsetHeight });
+    const canvas = await html2canvas(invoiceRef.current, { 
+      scale: 3, 
+      backgroundColor: '#FFFFFF', 
+      useCORS: true,
+      logging: false
+    });
     const link = document.createElement('a');
-    link.download = `Kaenpro_Nota_${finalOs?.osNumber}.png`;
+    link.download = `KAEN_MECANICA_${finalOs?.osNumber}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
   };
 
-  const handleWhatsApp = () => {
-    if (!finalOs) return;
-    const text = `*KAENPRO MOTORS*\nNota: #${finalOs.osNumber}\nVeículo: ${finalOs.vehiclePlate}\nTotal: R$ ${finalOs.totalValue.toLocaleString('pt-BR')}\nStatus: ${finalOs.paymentStatus}\n\nLink para detalhes: https://kaenpro.cloud/check/${finalOs.id}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-  };
-
-  const isCompact = items.length > 8;
-  const itemFontSize = isCompact ? 'text-[10px]' : 'text-[12px]';
-  const itemPadding = isCompact ? 'py-1.5' : 'py-3.5';
-
   return (
-    <div className="flex flex-col h-full bg-black text-white selection:bg-[#FF2D55]">
+    <div className="flex flex-col min-h-screen bg-black text-white items-center w-full">
       {/* Header Centralizado */}
-      <div className="p-8 border-b border-white/5 flex items-center justify-between glass-card sticky top-0 z-50 print:hidden">
-        <button onClick={() => navigate(-1)} className="p-4 bg-white/5 rounded-full text-zinc-500 active-glow border border-white/10">
-          <ChevronLeft size={22} />
+      <div className="w-full p-8 border-b border-white/5 flex items-center justify-between glass-card sticky top-0 z-50 print:hidden">
+        <button onClick={() => navigate(-1)} className="p-4 bg-white/5 rounded-full text-zinc-500 hover:text-white border border-white/10 transition-all">
+          <ChevronLeft size={24} />
         </button>
-        <h2 className="text-[11px] font-black uppercase tracking-[0.6em] italic">Gerador <span className="text-[#FF2D55]">Square</span></h2>
+        <h2 className="text-[11px] font-black uppercase tracking-[0.6em] italic text-center">GERADOR <span className="text-[#FF2D55]">KAEN</span></h2>
         <div className="w-14"></div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 sm:p-12 no-scrollbar print:p-0 print:overflow-visible scroll-smooth">
-        {step !== 'FINAL' ? (
-          <div className="max-w-2xl mx-auto space-y-12 pb-32 flex flex-col items-center">
-            {/* Step 1: Identificação */}
-            <div className="glass-card p-10 rounded-ios border border-white/10 space-y-10 shadow-3xl animate-ios-slide w-full flex flex-col items-center text-center">
-               <div className="flex flex-col items-center gap-5">
-                 <div className="w-12 h-12 bg-[#FF2D55]/10 rounded-2xl flex items-center justify-center text-[#FF2D55] border border-[#FF2D55]/20 shadow-inner"><User size={24}/></div>
-                 <h3 className="text-[11px] font-black uppercase text-zinc-500 tracking-[0.5em] italic">Unidade de Registro</h3>
-               </div>
-               
-               {!selectedClient ? (
-                  <div className="relative group w-full">
-                    <Search className="absolute left-8 top-1/2 -translate-y-1/2 text-zinc-700 group-focus-within:text-[#FF2D55] transition-colors" size={26} />
-                    <input 
-                      type="text" value={clientSearch} onChange={(e) => setClientSearch(e.target.value)}
-                      placeholder="NOME DO PROPRIETÁRIO..."
-                      className="w-full bg-black/50 border-2 border-white/5 rounded-[2.2rem] py-8 pl-22 pr-8 text-sm font-black outline-none focus:border-[#FF2D55]/40 transition-all placeholder-zinc-900 text-center uppercase tracking-widest"
-                    />
-                    {filteredClients.length > 0 && (
-                       <div className="mt-6 space-y-3 max-h-64 overflow-y-auto no-scrollbar animate-in fade-in slide-in-from-top-6 w-full">
-                         {filteredClients.map(c => (
-                           <button key={c.id} onClick={() => setSelectedClient(c)} className="w-full p-8 bg-white/5 hover:bg-[#FF2D55] rounded-[2.2rem] flex items-center justify-between border border-white/5 transition-all group shadow-xl">
-                             <span className="text-xs font-black uppercase italic group-hover:text-white tracking-widest">{c.name}</span>
-                             <Plus size={20} className="text-[#FF2D55] group-hover:text-white" />
-                           </button>
-                         ))}
-                       </div>
-                    )}
-                  </div>
-               ) : (
-                  <div className="bg-white/5 p-10 rounded-ios border border-[#FF2D55]/20 flex flex-col items-center justify-center animate-in zoom-in w-full gap-4 relative">
-                    <div className="flex flex-col items-center">
-                      <span className="text-[10px] font-black text-zinc-700 uppercase tracking-widest mb-2 italic">Cliente Ativo</span>
-                      <span className="text-2xl font-black uppercase italic text-white tracking-tighter">{selectedClient.name}</span>
-                    </div>
-                    <button onClick={() => {setSelectedClient(null); setSelectedVehicle(null);}} className="p-4 bg-black/50 rounded-full text-zinc-500 hover:text-white transition-all absolute top-6 right-6 border border-white/5"><X size={24}/></button>
-                  </div>
-               )}
-
-               {selectedClient && !selectedVehicle && (
-                  <div className="grid grid-cols-1 gap-5 w-full animate-in slide-in-from-bottom-8">
-                    <p className="text-[10px] font-black text-zinc-700 uppercase tracking-[0.4em] mb-2 italic">Selecione o Veículo</p>
-                    {clientVehicles.map(v => (
-                      <button key={v.id} onClick={() => setSelectedVehicle(v)} className="p-10 bg-white/5 border border-white/5 rounded-ios hover:border-[#FF2D55]/50 transition-all group shadow-2xl flex flex-col items-center text-center">
-                        <span className="text-4xl font-black text-white group-hover:text-[#FF2D55] transition-colors italic tracking-tighter uppercase mb-2">{v.plate}</span>
-                        <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-[0.4em]">{v.model}</span>
-                      </button>
-                    ))}
-                  </div>
-               )}
-
-               {selectedVehicle && (
-                 <div className="bg-white/5 p-10 rounded-ios border border-white/10 flex flex-col items-center justify-center animate-in zoom-in shadow-inner w-full relative">
-                    <div className="flex flex-col items-center">
-                      <span className="text-[10px] font-black text-zinc-700 uppercase tracking-widest mb-2 italic">Veículo Alvo</span>
-                      <span className="text-2xl font-black uppercase italic text-[#FF2D55] tracking-tighter">{selectedVehicle.plate} • {selectedVehicle.model}</span>
-                    </div>
-                    <button onClick={() => setSelectedVehicle(null)} className="p-4 bg-black/50 rounded-full text-zinc-500 hover:text-white absolute top-6 right-6 border border-white/5"><X size={22}/></button>
-                 </div>
-               )}
+      <div className="flex-1 w-full max-w-4xl p-6 md:p-12 space-y-12 pb-40 flex flex-col items-center">
+        
+        {step === 'CLIENTE' && (
+          <div className="w-full space-y-8 animate-in slide-in-from-bottom-4 duration-500 flex flex-col items-center">
+            <h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter text-center">CLIENTE</h1>
+            <div className="relative glass-card p-2 rounded-full border-white/10 w-full max-w-2xl">
+              <Search className="absolute left-8 top-1/2 -translate-y-1/2 text-zinc-700" size={24} />
+              <input 
+                type="text" value={clientSearch} onChange={(e) => setClientSearch(e.target.value)}
+                placeholder="BUSCAR NOME OU WHATSAPP..."
+                className="w-full bg-transparent border-none py-6 pl-20 pr-8 text-white font-black text-xs uppercase outline-none placeholder-zinc-800"
+              />
             </div>
-
-            {/* Step 2: Itens Centrados */}
-            {selectedVehicle && (
-               <div className="glass-card p-10 rounded-ios border border-white/10 space-y-12 shadow-3xl animate-ios-slide w-full flex flex-col items-center">
-                  <div className="flex flex-col items-center gap-6">
-                    <div className="w-12 h-12 bg-[#FF2D55]/10 rounded-2xl flex items-center justify-center text-[#FF2D55] border border-[#FF2D55]/20 shadow-inner"><Wrench size={24}/></div>
-                    <h3 className="text-[11px] font-black uppercase text-zinc-500 tracking-[0.5em] italic">Anatomia do Serviço</h3>
-                    <button onClick={addItem} className="p-6 bg-[#FF2D55] rounded-3xl text-white shadow-3xl hover:scale-110 active-glow transition-all flex items-center gap-3 px-10">
-                        <Plus size={24}/> <span className="font-black uppercase text-[10px] tracking-widest">Incluir Componente</span>
-                    </button>
+            <div className="grid grid-cols-1 gap-4 w-full max-w-2xl">
+              {filteredClients.map(c => (
+                <button key={c.id} onClick={() => { setSelectedClient(c); setStep('VEICULO'); }} className="w-full p-8 glass-card border-white/5 rounded-[2.5rem] flex items-center justify-between hover:border-[#FF2D55]/50 transition-all group">
+                  <div className="text-left">
+                    <p className="text-2xl font-black italic uppercase group-hover:text-[#FF2D55]">{c.name}</p>
+                    <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">{c.phone}</p>
                   </div>
-                  
-                  <div className="space-y-6 w-full">
-                    {items.map(item => (
-                      <div key={item.id} className="bg-black/50 p-8 rounded-[2.5rem] border border-white/5 space-y-8 hover:border-white/10 transition-all group flex flex-col items-center text-center shadow-xl">
-                        <input 
-                          type="text" placeholder="DESCRIÇÃO TÉCNICA..." 
-                          value={item.description} 
-                          onChange={(e)=>updateItem(item.id, 'description', e.target.value.toUpperCase())} 
-                          className="w-full bg-transparent text-[13px] font-black outline-none uppercase italic text-white placeholder-zinc-900 tracking-[0.1em] text-center"
-                        />
-                        <div className="flex gap-4 w-full">
-                           <div className="flex-1 flex bg-black/70 p-2 rounded-2xl border border-white/5 shadow-inner">
-                             <input type="number" placeholder="QTD" value={item.quantity} onChange={(e)=>updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)} className="w-full bg-transparent p-4 text-center text-sm font-black text-white outline-none placeholder-zinc-800"/>
-                           </div>
-                           <div className="flex-[2] flex bg-black/70 p-2 rounded-2xl border border-white/5 shadow-inner">
-                             <span className="flex items-center pl-6 text-zinc-700 font-black italic tracking-widest">R$</span>
-                             <input type="number" placeholder="0,00" value={item.unitPrice} onChange={(e)=>updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)} className="w-full bg-transparent p-4 text-sm font-black text-white outline-none placeholder-zinc-800"/>
-                           </div>
-                           <button onClick={()=>removeItem(item.id)} className="p-6 text-zinc-800 hover:text-[#FF2D55] transition-colors"><Trash2 size={26}/></button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
-                    <div className="space-y-4 flex flex-col items-center">
-                      <label className="text-[10px] font-black text-zinc-700 tracking-[0.4em] italic uppercase">Mão de Obra</label>
-                      <input type="number" value={labor} onChange={(e)=>setLabor(e.target.value)} className="w-full bg-black/70 border border-white/10 p-7 rounded-[2.2rem] text-xl font-black outline-none focus:border-[#FF2D55] shadow-inner text-center uppercase tracking-tighter"/>
-                    </div>
-                    <div className="space-y-4 flex flex-col items-center">
-                      <label className="text-[10px] font-black text-zinc-700 tracking-[0.4em] italic uppercase">Liquidação</label>
-                      <select value={paymentStatus} onChange={(e)=>setPaymentStatus(e.target.value as PaymentStatus)} className="w-full bg-black/70 border border-white/10 p-7 rounded-[2.2rem] text-[11px] font-black uppercase outline-none focus:border-[#FF2D55] shadow-inner text-center tracking-widest">
-                        <option value={PaymentStatus.PENDENTE}>AGUARDANDO PIX</option>
-                        <option value={PaymentStatus.PAGO}>CONFIRMADO</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="p-14 bg-[#FF2D55]/5 rounded-ios border border-[#FF2D55]/10 flex flex-col items-center gap-4 shadow-3xl w-full">
-                    <span className="text-[11px] font-black uppercase text-zinc-600 tracking-[0.6em]">Montante Neural</span>
-                    <span className="text-6xl font-black text-white italic tracking-tighter">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                  </div>
-
-                  <button 
-                    onClick={handleFinalize} 
-                    disabled={isSaving} 
-                    className="w-full bg-[#FF2D55] py-9 rounded-ios font-black uppercase text-[12px] tracking-[0.5em] shadow-3xl shadow-[#FF2D55]/50 flex items-center justify-center gap-5 active-glow transition-all hover:scale-[1.02]"
-                  >
-                    {isSaving ? <Loader2 className="animate-spin" size={30}/> : <Check size={30}/>}
-                    Sincronizar Nota Cloud
-                  </button>
-               </div>
-            )}
+                  <User size={28} className="text-zinc-800 group-hover:text-[#FF2D55]" />
+                </button>
+              ))}
+            </div>
           </div>
-        ) : (
-          <div className="max-w-[800px] mx-auto flex flex-col items-center gap-14 print:block print:max-w-none pb-40">
-             {/* NOTA QUADRADA BIONIC SQUARE - ANTI-CORTE */}
-             <div className="w-full overflow-visible print:overflow-visible flex justify-center">
-               <div 
-                 ref={invoiceRef}
-                 className="w-full max-w-[550px] bg-white text-zinc-950 p-10 sm:p-16 flex flex-col rounded-ios shadow-[0_80px_160px_-40px_rgba(0,0,0,0.9)] print:shadow-none print:p-12 print:max-w-none print:rounded-none overflow-visible border border-zinc-100"
-                 style={{ 
-                    minHeight: isCompact ? 'auto' : '550px',
-                    aspectRatio: isCompact ? 'auto' : '1 / 1',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between'
-                 }}
-               >
-                  {/* Cabeçalho */}
-                  <div className="flex justify-between items-start mb-12">
-                    <div className="flex gap-6 items-center">
-                      <div className="w-20 h-20 bg-black rounded-[2rem] flex items-center justify-center text-white shrink-0 shadow-3xl">
-                        <Wrench size={44} />
-                      </div>
-                      <div>
-                        <h1 className={`${isCompact ? 'text-2xl' : 'text-4xl'} font-black tracking-tighter uppercase leading-none mb-2 italic`}>KAENPRO</h1>
-                        <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest leading-none">Bionic Precision Unit • v26.1</p>
-                      </div>
-                    </div>
-                    <div className="text-right flex flex-col items-end">
-                      <p className="text-[10px] font-black text-zinc-300 uppercase mb-2 tracking-[0.3em] italic">REGISTRO ID</p>
-                      <p className={`${isCompact ? 'text-3xl' : 'text-5xl'} font-black leading-none mb-2 italic tracking-tighter`}>#{finalOs.osNumber}</p>
-                      <p className="text-[12px] font-bold text-zinc-400 uppercase tracking-widest">{new Date(finalOs.createdAt).toLocaleDateString('pt-BR')}</p>
-                    </div>
-                  </div>
+        )}
 
-                  {/* Info Box */}
-                  <div className="grid grid-cols-2 gap-6 mb-12">
-                    <div className="bg-[#FAFAFA] p-8 rounded-[2.5rem] border border-zinc-100 shadow-sm flex flex-col justify-center">
-                      <p className="text-[9px] font-black text-zinc-300 uppercase tracking-[0.4em] mb-4 italic">CITIZEN OWNER</p>
-                      <p className="text-2xl font-black uppercase italic leading-none truncate tracking-tighter">{finalOs.clientName}</p>
-                      <p className="text-[12px] font-bold text-zinc-400 mt-3 tracking-widest">{selectedClient?.phone}</p>
-                    </div>
-                    <div className="bg-[#FAFAFA] p-8 rounded-[2.5rem] border border-zinc-100 shadow-sm flex justify-between items-center">
-                         <div>
-                          <p className="text-[9px] font-black text-zinc-300 uppercase tracking-[0.4em] mb-4 italic">PLATE</p>
-                          <p className="text-2xl font-black uppercase italic leading-none tracking-tighter">{finalOs.vehiclePlate}</p>
-                          <p className="text-[11px] font-bold text-zinc-400 mt-3 uppercase truncate tracking-widest">{finalOs.vehicleModel}</p>
-                         </div>
-                         <div className="text-right">
-                          <p className="text-[9px] font-black text-zinc-300 uppercase tracking-[0.4em] mb-4 italic">DISTANCE</p>
-                          <p className="text-2xl font-black uppercase italic leading-none tracking-tighter">{finalOs.vehicleKm || '0'} <span className="text-zinc-200 text-xs">KM</span></p>
-                         </div>
-                    </div>
-                  </div>
+        {step === 'VEICULO' && selectedClient && (
+          <div className="w-full space-y-8 animate-in slide-in-from-right-4 duration-500 flex flex-col items-center">
+            <div className="text-center">
+              <h1 className="text-4xl md:text-6xl font-black italic uppercase">VEÍCULO</h1>
+              <p className="text-zinc-600 font-black uppercase tracking-widest mt-2">{selectedClient.name}</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
+              {clientVehicles.map(v => (
+                <button key={v.id} onClick={() => { setSelectedVehicle(v); setStep('ITENS'); }} className="p-10 glass-card border-white/5 rounded-[3rem] text-center hover:border-[#FF2D55]/50 transition-all group">
+                  <Car size={40} className="mx-auto text-zinc-800 group-hover:text-[#FF2D55] mb-4" />
+                  <p className="text-3xl font-black italic uppercase">{v.plate}</p>
+                  <p className="text-[10px] font-bold text-zinc-600 uppercase mt-2">{v.model}</p>
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setStep('CLIENTE')} className="w-full py-6 text-zinc-600 font-black uppercase text-[10px] tracking-widest italic hover:text-white">VOLTAR PARA CLIENTES</button>
+          </div>
+        )}
 
-                  {/* Tabela de Itens */}
-                  <div className="flex-1 mb-10">
-                     <table className="w-full text-left border-collapse">
-                        <thead>
-                          <tr className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.5em] border-b-2 border-zinc-100">
-                            <th className="pb-5">DATA COMPONENT DESCRIPTION</th>
-                            <th className="pb-5 text-center">QTY</th>
-                            <th className="pb-5 text-right">CREDIT</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-zinc-50 text-zinc-950 font-bold">
-                          {finalOs.items.map((i,idx)=>(
-                            <tr key={idx} className="break-inside-avoid">
-                              <td className={`${itemFontSize} ${itemPadding} uppercase italic leading-tight pr-8 tracking-tight`}>{i.description}</td>
-                              <td className={`${itemFontSize} ${itemPadding} text-center`}>{i.quantity.toString().padStart(2, '0')}</td>
-                              <td className={`${itemFontSize} ${itemPadding} text-right font-black tracking-tighter`}>R$ {(i.quantity*i.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                            </tr>
-                          ))}
-                          {finalOs.laborValue > 0 && (
-                            <tr className="break-inside-avoid">
-                              <td className={`${itemFontSize} ${itemPadding} uppercase italic font-black text-zinc-600`}>Specialized Bionic Labor (Precision)</td>
-                              <td className={`${itemFontSize} ${itemPadding} text-center`}>01</td>
-                              <td className={`${itemFontSize} ${itemPadding} text-right font-black tracking-tighter`}>R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                            </tr>
-                          )}
-                        </tbody>
-                     </table>
-                  </div>
+        {step === 'ITENS' && selectedVehicle && (
+          <div className="w-full space-y-12 animate-in slide-in-from-right-4 duration-500 flex flex-col items-center">
+            <div className="glass-card p-10 rounded-ios border-white/10 space-y-12 w-full max-w-3xl">
+               <div className="flex items-center justify-between">
+                 <div>
+                   <h3 className="text-2xl font-black italic uppercase tracking-tighter">{selectedVehicle.plate}</h3>
+                   <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">{selectedClient.name}</p>
+                 </div>
+                 <button onClick={addItem} className="px-8 py-4 bg-[#FF2D55] rounded-full text-white font-black uppercase text-[10px] tracking-widest flex items-center gap-3 active:scale-90">
+                   <Plus size={18}/> ADICIONAR
+                 </button>
+               </div>
+               <div className="space-y-4">
+                 {items.map(item => (
+                   <div key={item.id} className="bg-black p-6 rounded-[2.2rem] border border-white/5 space-y-6">
+                     <input type="text" placeholder="DESCRIÇÃO..." value={item.description} onChange={(e)=>updateItem(item.id, 'description', e.target.value.toUpperCase())} className="w-full bg-transparent text-sm font-black outline-none uppercase italic text-white tracking-widest"/>
+                     <div className="flex gap-4">
+                        <input type="number" placeholder="QTD" value={item.quantity || ''} onChange={(e)=>updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)} className="w-24 bg-white/5 border border-white/5 p-5 rounded-2xl text-center text-sm font-black text-white outline-none"/>
+                        <input type="number" placeholder="UNITÁRIO" value={item.unitPrice || ''} onChange={(e)=>updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)} className="flex-1 bg-white/5 border border-white/5 p-5 rounded-2xl text-sm font-black text-white outline-none"/>
+                        <button onClick={()=>removeItem(item.id)} className="p-5 text-zinc-800 hover:text-[#FF2D55]"><Trash2 size={24}/></button>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div>
+                   <label className="text-[9px] font-black text-zinc-700 tracking-widest uppercase block mb-2">MÃO DE OBRA</label>
+                   <input type="number" value={labor} onChange={(e)=>setLabor(e.target.value)} className="w-full bg-black border border-white/5 p-8 rounded-[2.2rem] text-2xl font-black outline-none text-white italic"/>
+                 </div>
+                 <div>
+                   <label className="text-[9px] font-black text-zinc-700 tracking-widest uppercase block mb-2">PAGAMENTO</label>
+                   <select value={paymentStatus} onChange={(e)=>setPaymentStatus(e.target.value as PaymentStatus)} className="w-full bg-black border border-white/5 p-8 rounded-[2.2rem] text-[11px] font-black uppercase outline-none text-white italic cursor-pointer">
+                     <option value={PaymentStatus.PENDENTE}>PENDENTE</option>
+                     <option value={PaymentStatus.PAGO}>PAGO</option>
+                   </select>
+                 </div>
+               </div>
+               <div className="p-12 bg-white/5 rounded-ios border border-white/5 flex flex-col items-center gap-2">
+                 <span className="text-[10px] font-black text-zinc-700 uppercase tracking-widest italic">VALOR TOTAL</span>
+                 <span className="text-6xl font-black italic">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+               </div>
+               <button onClick={handleFinalize} disabled={isSaving} className="w-full bg-[#FF2D55] py-8 rounded-ios font-black uppercase text-xs tracking-[0.6em] flex items-center justify-center gap-6 active:scale-95 italic">
+                 {isSaving ? <Loader2 className="animate-spin" size={30}/> : <Check size={30}/>} FINALIZAR NOTA
+               </button>
+            </div>
+          </div>
+        )}
 
-                  {/* Rodapé Bionic */}
-                  <div className="pt-12 border-t-2 border-zinc-100 flex justify-between items-end gap-10 break-inside-avoid mt-auto">
-                    <div className="space-y-10 flex-1">
-                       <div className={`inline-flex px-8 py-3 rounded-full border-2 text-[11px] font-black uppercase tracking-[0.4em] shadow-sm ${finalOs.paymentStatus === PaymentStatus.PAGO ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
-                          {finalOs.paymentStatus === PaymentStatus.PAGO ? 'SYNCED / PAGO' : 'PENDING / AGUARDANDO'}
+        {step === 'FINAL' && finalOs && (
+          <div className="w-full flex flex-col items-center gap-16 animate-in fade-in duration-700">
+             <div className="invoice-preview-container">
+               <div className="invoice-scale-wrapper">
+                 <div ref={invoiceRef} className="kaen-invoice shadow-[0_60px_150px_rgba(0,0,0,0.5)]">
+                    {/* Header Kaen */}
+                    <div className="flex justify-between items-start mb-10 border-b border-zinc-100 pb-8">
+                       <div className="flex gap-5 items-center">
+                          <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center text-white">
+                            <Wrench size={32} />
+                          </div>
+                          <div>
+                            <h1 className="text-3xl font-black tracking-tighter uppercase leading-none mb-1">KAEN MECÂNICA</h1>
+                            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest italic">RUA JOAQUIM MARQUES ALVES, 765</p>
+                          </div>
                        </div>
-                       <div className="w-72 pt-8 border-t-2 border-zinc-200">
-                          <p className="text-[10px] font-black text-zinc-300 uppercase text-center tracking-[0.6em] leading-none italic">AUTH SIGNATURE</p>
+                       <div className="text-right">
+                          <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1">OS Nº</p>
+                          <p className="text-4xl font-black leading-none mb-1 tracking-tighter">KP-{finalOs.osNumber}</p>
+                          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest italic">{new Date(finalOs.createdAt).toLocaleDateString('pt-BR')}</p>
                        </div>
                     </div>
 
-                    <div className="bg-[#0A0A0A] px-14 py-12 rounded-[3.5rem] flex flex-col items-end min-w-[280px] shadow-3xl text-white">
-                      <p className="text-[11px] font-black text-zinc-500 uppercase tracking-[0.5em] mb-4 italic text-right">TOTAL VALUATION</p>
-                      <p className={`${isCompact ? 'text-4xl' : 'text-6xl'} font-black italic tracking-tighter leading-none`}>R$ {finalOs.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    {/* Info Blocks Kaen */}
+                    <div className="grid grid-cols-2 gap-6 mb-10">
+                      <div className="bg-zinc-50 p-8 rounded-[2.5rem] border border-zinc-100">
+                        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-3 italic">PROPRIETÁRIO</p>
+                        <p className="text-2xl font-black uppercase leading-tight tracking-tighter">{finalOs.clientName}</p>
+                        <p className="text-[13px] font-bold text-zinc-500 mt-1">{selectedClient?.phone}</p>
+                      </div>
+                      <div className="bg-zinc-50 p-8 rounded-[2.5rem] border border-zinc-100 flex flex-col justify-between">
+                         <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-3 italic">VEÍCULO</p>
+                            <p className="text-2xl font-black uppercase leading-none tracking-tighter">{finalOs.vehiclePlate}</p>
+                            <p className="text-[12px] font-bold text-zinc-500 uppercase mt-2">{finalOs.vehicleModel}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-3 italic">KM ATUAL</p>
+                            <p className="text-xl font-black tracking-tighter">{finalOs.vehicleKm || '0'} km</p>
+                          </div>
+                         </div>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="mt-16 text-center break-inside-avoid opacity-40">
-                     <p className="text-[10px] font-black text-zinc-300 uppercase tracking-[1.5em] italic">KAENPRO MOTORSPORT • PERFORMANCE GUARANTEED</p>
-                  </div>
+                    {/* Tabela de Itens Flexível */}
+                    <div className="flex-1 mb-8 overflow-visible">
+                       <table className="w-full text-left">
+                          <thead>
+                            <tr className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest border-b border-zinc-50">
+                              <th className="pb-4 italic">DESCRIÇÃO</th>
+                              <th className="pb-4 text-center px-4">QTD</th>
+                              <th className="pb-4 text-right">UNITÁRIO</th>
+                              <th className="pb-4 text-right">TOTAL</th>
+                            </tr>
+                          </thead>
+                          <tbody className="font-bold text-zinc-800">
+                            {finalOs.items.map((i,idx)=>(
+                              <tr key={idx} className="border-b border-zinc-50/50">
+                                <td className="text-[11px] py-4 uppercase leading-tight pr-6">{i.description}</td>
+                                <td className="text-[11px] py-4 text-center text-zinc-400 px-4">{i.quantity}</td>
+                                <td className="text-[11px] py-4 text-right text-zinc-400">R$ {i.unitPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                                <td className="text-[11px] py-4 text-right">R$ {(i.quantity*i.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                              </tr>
+                            ))}
+                            {finalOs.laborValue > 0 && (
+                              <tr className="bg-zinc-50/30">
+                                <td className="text-[11px] py-4 uppercase font-black">Mão de Obra Especializada</td>
+                                <td className="text-[11px] py-4 text-center text-zinc-400">01</td>
+                                <td className="text-[11px] py-4 text-right text-zinc-400">R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                                <td className="text-[11px] py-4 text-right font-black">R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                              </tr>
+                            )}
+                          </tbody>
+                       </table>
+                    </div>
+
+                    {/* Footer Kaen Equilibrado */}
+                    <div className="mt-auto flex justify-between items-center border-t border-zinc-100 pt-8">
+                       <div className="flex flex-col gap-6 flex-1">
+                          <div className={`inline-flex self-start px-8 py-2.5 rounded-2xl border text-[10px] font-black uppercase tracking-widest italic ${finalOs.paymentStatus === PaymentStatus.PAGO ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
+                              SITUAÇÃO: {finalOs.paymentStatus === PaymentStatus.PAGO ? 'PAGO' : 'PENDENTE'}
+                          </div>
+                          <div className="w-52 pt-4 border-t border-zinc-100">
+                              <p className="text-[8px] font-bold text-zinc-300 uppercase text-center tracking-[0.4em] italic">ASSINATURA</p>
+                          </div>
+                       </div>
+                       <div className="bg-zinc-50 px-10 py-6 rounded-[2.5rem] flex flex-col items-end min-w-[240px] border border-zinc-100">
+                          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1 italic">TOTAL DA NOTA</p>
+                          <p className="text-3xl font-black text-black leading-none tracking-tighter italic">R$ {finalOs.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                       </div>
+                    </div>
+
+                    <div className="absolute bottom-6 left-0 w-full text-center">
+                       <p className="text-[9px] font-bold text-zinc-200 uppercase tracking-[0.5em] italic">CONFIANÇA EM CADA KM • KAEN MECÂNICA</p>
+                    </div>
+                 </div>
                </div>
              </div>
 
-             {/* Painel de Ações Centrado */}
-             <div className="w-full max-w-[550px] space-y-6 print:hidden px-6 mb-32 flex flex-col items-center">
-                <button onClick={handleWhatsApp} className="w-full bg-[#25D366] py-8 rounded-ios font-black uppercase text-[12px] tracking-[0.5em] flex items-center justify-center gap-5 shadow-3xl active-glow transition-all hover:scale-[1.02]">
-                  <MessageCircle size={32}/> Enviar Comprovante Cloud
+             <div className="w-full max-w-[600px] flex flex-col gap-4 px-4">
+                <button onClick={downloadImage} className="w-full bg-white text-black py-8 rounded-ios font-black uppercase text-xs tracking-[0.6em] flex items-center justify-center gap-5 shadow-2xl active:scale-95 italic">
+                   <ImageIcon size={30}/> SALVAR IMAGEM (WHATSAPP)
                 </button>
-                <div className="grid grid-cols-2 gap-6 w-full">
-                   <button onClick={downloadImage} className="glass-card py-8 rounded-ios font-black uppercase text-[11px] tracking-[0.4em] flex items-center justify-center gap-4 active-glow transition-all hover:bg-white/5 border-white/10">
-                      <ImageIcon size={24} className="text-[#FF2D55]"/> Imagem 4K
-                   </button>
-                   <button onClick={() => window.print()} className="glass-card py-8 rounded-ios font-black uppercase text-[11px] tracking-[0.4em] flex items-center justify-center gap-4 active-glow transition-all hover:bg-white/5 border-white/10">
-                      <Printer size={24} className="text-[#FF2D55]"/> Impressão A4
-                   </button>
-                </div>
-                <button onClick={() => navigate('/dashboard')} className="w-full bg-white/5 text-zinc-700 py-7 rounded-ios font-black uppercase text-[11px] tracking-[0.8em] mt-12 hover:text-white transition-colors border border-white/5">
-                   Sair do Workspace
-                </button>
+                <button onClick={() => navigate('/dashboard')} className="glass-card py-6 rounded-ios font-black uppercase text-[10px] tracking-[0.4em] flex items-center justify-center hover:bg-white/5 italic">VOLTAR AO PAINEL</button>
              </div>
           </div>
         )}
       </div>
-
-      <style>{`
-        @media print {
-          body { background: white !important; margin: 0 !important; }
-          #root { display: block !important; }
-          .print\\:hidden { display: none !important; }
-          div[ref] {
-            visibility: visible !important;
-            width: 100% !important;
-            max-width: none !important;
-            padding: 25mm !important;
-            box-shadow: none !important;
-            border-radius: 0 !important;
-            min-height: 0 !important;
-            height: auto !important;
-            aspect-ratio: auto !important;
-          }
-          @page { size: portrait; margin: 0; }
-          .break-inside-avoid { page-break-inside: avoid; }
-        }
-      `}</style>
     </div>
   );
 };
