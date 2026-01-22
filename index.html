@@ -19,7 +19,6 @@
             background-color: var(--bg-main);
             color: #ffffff;
             margin: 0;
-            overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
         }
 
@@ -31,86 +30,90 @@
             -webkit-backdrop-filter: blur(40px) saturate(180%);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        * { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
-        
-        main {
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            width: 100% !important;
-            overflow-x: visible !important;
-        }
 
-        /* NOTA FISCAL - ESTRUTURA BLINDADA 9:16 */
+        /* ESTRUTURA DA NOTA FISCAL - PRECISA E RÍGIDA */
         .kaen-invoice {
-            width: 720px;
-            height: 1280px;
+            width: 800px;
+            height: 1130px; /* Formato A4 Proporcional */
             background: white;
             color: black;
-            padding: 40px;
+            padding: 50px;
             display: flex;
             flex-direction: column;
             position: relative;
             box-sizing: border-box;
             overflow: hidden;
+            border: none;
         }
 
-        /* GRID RÍGIDO PARA EVITAR SOBREPOSIÇÃO */
-        .invoice-table {
+        /* TABELA BLINDADA - IMPEDE SOBREPOSIÇÃO */
+        .os-table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed; /* Impede textos de empurrarem colunas */
+            table-layout: fixed; /* O SEGREDO: Força as colunas a respeitarem a largura */
         }
 
-        .col-desc { width: 55%; }
-        .col-qtd { width: 10%; }
-        .col-unit { width: 17%; }
-        .col-total { width: 18%; }
+        .os-table th {
+            text-align: left;
+            font-size: 10px;
+            font-weight: 900;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
 
-        /* NÍVEIS DE COMPACTAÇÃO */
-        /* Normal (Até 8 itens) */
-        .kaen-invoice td { padding: 12px 5px; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+        .os-table td {
+            padding: 12px 0;
+            border-bottom: 1px solid #f8f8f8;
+            font-size: 13px;
+            font-weight: 700;
+            word-wrap: break-word; /* Força quebra de linha se o texto for gigante */
+            vertical-align: top;
+        }
 
-        /* Compacto (9-14 itens) */
-        .kaen-invoice.compact-mode td { padding: 8px 5px; font-size: 11px; }
-        .kaen-invoice.compact-mode .info-block-p { font-size: 18px !important; }
+        /* COLUNAS COM LARGURA FIXA */
+        .w-desc { width: 50%; }
+        .w-qtd { width: 10%; text-align: center; }
+        .w-unit { width: 20%; text-align: right; }
+        .w-total { width: 20%; text-align: right; }
 
-        /* Micro (15+ itens) */
-        .kaen-invoice.micro-mode td { padding: 5px 5px; font-size: 9px; line-height: 1; }
-        .kaen-invoice.micro-mode .invoice-header { margin-bottom: 15px !important; padding-bottom: 15px !important; }
-        .kaen-invoice.micro-mode .info-grid { margin-bottom: 15px !important; gap: 10px !important; }
-        .kaen-invoice.micro-mode .info-block { padding: 15px !important; border-radius: 1.5rem !important; }
+        /* NÍVEIS DE COMPACTAÇÃO AUTOMÁTICA */
+        .kaen-invoice.density-medium td { padding: 8px 0; font-size: 11px; }
+        .kaen-invoice.density-high td { padding: 4px 0; font-size: 9px; line-height: 1.1; }
+        .kaen-invoice.density-high .invoice-header { margin-bottom: 20px !important; }
 
-        /* SISTEMA DE PREVIEW */
+        /* PREVIEW SYSTEM */
         .invoice-preview-container {
             display: flex;
             justify-content: center;
             width: 100%;
-            overflow: visible;
+            padding: 20px 0;
         }
 
         .invoice-scale-wrapper {
-            width: 720px;
-            height: 1280px;
+            width: 800px;
+            height: 1130px;
             transform-origin: top center;
             flex-shrink: 0;
         }
 
         @media (max-width: 850px) {
-            .invoice-scale-wrapper { transform: scale(0.42); margin-bottom: -740px; }
+            .invoice-scale-wrapper { transform: scale(0.45); margin-bottom: -600px; }
         }
 
         @media (max-width: 450px) {
-            .invoice-scale-wrapper { transform: scale(0.35); margin-bottom: -830px; }
+            .invoice-scale-wrapper { transform: scale(0.38); margin-bottom: -700px; }
         }
 
-        #hidden-render-area {
+        /* ÁREA DE RENDERIZAÇÃO OCULTA (SOLUÇÃO PARA O BUG DA IMAGEM) */
+        #render-hidden-os {
             position: absolute;
-            top: -9999px;
             left: -9999px;
-            width: 720px;
-            height: 1280px;
+            top: -9999px;
+            width: 800px;
+            height: 1130px;
             background: white;
         }
     </style>
@@ -133,7 +136,7 @@
 </head>
 <body>
     <div id="root"></div>
-    <div id="hidden-render-area"></div>
+    <div id="render-hidden-os"></div>
     <script type="module" src="/index.tsx"></script>
 </body>
 </html>

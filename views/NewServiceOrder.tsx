@@ -36,38 +36,13 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
     }
   }, [session]);
 
-  const filteredClients = useMemo(() => {
-    if (!clientSearch.trim()) return [];
-    return clients.filter(c => 
-      c.name.toLowerCase().includes(clientSearch.toLowerCase()) || 
-      c.phone.includes(clientSearch)
-    );
-  }, [clientSearch, clients]);
-
-  const clientVehicles = useMemo(() => {
-    return selectedClient ? vehicles.filter(v => v.clientId === selectedClient.id) : [];
-  }, [selectedClient, vehicles]);
-
   const totalValue = useMemo(() => {
     const itemsTotal = items.reduce((acc, curr) => acc + (curr.quantity * curr.unitPrice), 0);
     return itemsTotal + (parseFloat(labor) || 0);
   }, [items, labor]);
 
-  const addItem = () => {
-    setItems([...items, { id: Math.random().toString(36).substr(2, 9), description: '', quantity: 1, unitPrice: 0, type: 'SERVICE' }]);
-  };
-
-  const updateItem = (id: string, field: keyof OSItem, value: any) => {
-    setItems(items.map(i => i.id === id ? { ...i, [field]: value } : i));
-  };
-
-  const removeItem = (id: string) => {
-    setItems(items.filter(i => i.id !== id));
-  };
-
   const handleFinalize = async () => {
     if (!selectedClient || !selectedVehicle || !session || !syncData) return;
-    
     setIsSaving(true);
     try {
       const osNumber = `${Math.floor(100000 + Math.random() * 899999)}`;
@@ -90,15 +65,8 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
-
       const currentOrders = JSON.parse(localStorage.getItem(`kaenpro_${session.username}_orders`) || '[]');
       await syncData('orders', [...currentOrders, os]);
-
-      const updatedVehicles = vehicles.map(v => 
-        v.id === selectedVehicle.id ? { ...v, km: parseFloat(selectedVehicle.km.toString()) } : v
-      );
-      await syncData('vehicles', updatedVehicles);
-
       setFinalOs(os);
       setStep('FINAL');
     } catch (error) {
@@ -110,66 +78,53 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
 
   const downloadImage = async () => {
     if (!invoiceRef.current) return;
-    
-    const renderArea = document.getElementById('hidden-render-area');
-    if (!renderArea) return;
-    
-    renderArea.innerHTML = '';
+    const hiddenArea = document.getElementById('render-hidden-os');
+    if (!hiddenArea) return;
+
+    // LIMPEZA E CLONAGEM PURA (SEM CSS TRANSFORMS)
+    hiddenArea.innerHTML = '';
     const clone = invoiceRef.current.cloneNode(true) as HTMLDivElement;
-    
-    // Configurações críticas para captura limpa
     clone.style.transform = 'none';
     clone.style.margin = '0';
-    clone.style.position = 'relative';
-    clone.style.top = '0';
-    clone.style.left = '0';
-    clone.style.width = '720px';
-    clone.style.height = '1280px';
-    clone.style.boxShadow = 'none';
-    
-    renderArea.appendChild(clone);
+    clone.style.position = 'static';
+    hiddenArea.appendChild(clone);
 
     try {
       const canvas = await html2canvas(clone, {
-        scale: 2, // Resolução nítida para WhatsApp
-        useCORS: true,
+        scale: 2,
         backgroundColor: "#ffffff",
+        useCORS: true,
         logging: false,
         letterRendering: true,
-        width: 720,
-        height: 1280,
-        onclone: (clonedDoc) => {
-          // Garante que o fundo esteja branco puro no clone
-          const el = clonedDoc.querySelector('.kaen-invoice') as HTMLElement;
-          if (el) el.style.boxShadow = 'none';
-        }
+        width: 800,
+        height: 1130
       });
-      
       const link = document.createElement('a');
-      link.download = `KAEN_MECANICA_${finalOs?.osNumber}.png`;
+      link.download = `KAEN_OS_${finalOs?.osNumber}.png`;
       link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
-      renderArea.innerHTML = '';
+      hiddenArea.innerHTML = '';
     } catch (err) {
-      alert("Erro ao salvar imagem. Use print como alternativa.");
+      alert("Erro ao gerar imagem.");
     }
   };
 
-  // Determina o nível de compactação baseado no volume de dados
-  const itemCount = items.length + (parseFloat(labor) > 0 ? 1 : 0);
-  const modeClass = useMemo(() => {
-    if (itemCount > 14) return 'micro-mode';
-    if (itemCount > 8) return 'compact-mode';
+  // LÓGICA DE DENSIDADE PARA AJUSTE DE FONTE
+  const densityClass = useMemo(() => {
+    const count = items.length + (parseFloat(labor) > 0 ? 1 : 0);
+    if (count > 15) return 'density-high';
+    if (count > 8) return 'density-medium';
     return '';
-  }, [itemCount]);
+  }, [items, labor]);
 
   return (
     <div className="flex flex-col min-h-screen bg-black text-white items-center w-full">
-      <div className="w-full p-6 md:p-8 border-b border-white/5 flex items-center justify-between glass-card sticky top-0 z-50 print:hidden">
+      {/* Header do Gerador */}
+      <div className="w-full p-6 border-b border-white/5 flex items-center justify-between glass-card sticky top-0 z-50">
         <button onClick={() => navigate(-1)} className="p-3 bg-white/5 rounded-full text-zinc-500 hover:text-white border border-white/10 transition-all">
           <ChevronLeft size={20} />
         </button>
-        <h2 className="text-[10px] font-black uppercase tracking-[0.5em] italic text-center">GERADOR <span className="text-[#FF2D55]">KAEN</span></h2>
+        <h2 className="text-[10px] font-black uppercase tracking-[0.5em] italic">GERADOR <span className="text-[#FF2D55]">KAEN</span></h2>
         <div className="w-12"></div>
       </div>
 
@@ -177,7 +132,7 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
         
         {step === 'CLIENTE' && (
           <div className="w-full max-w-2xl space-y-8 animate-in slide-in-from-bottom-4 duration-500 flex flex-col items-center">
-            <h1 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-center">CLIENTE</h1>
+            <h1 className="text-4xl font-black italic uppercase tracking-tighter">CLIENTE</h1>
             <div className="relative glass-card p-1 rounded-full border-white/10 w-full">
               <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-700" size={20} />
               <input 
@@ -187,13 +142,13 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
               />
             </div>
             <div className="grid grid-cols-1 gap-4 w-full">
-              {filteredClients.map(c => (
+              {clients.filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase())).slice(0, 5).map(c => (
                 <button key={c.id} onClick={() => { setSelectedClient(c); setStep('VEICULO'); }} className="w-full p-6 glass-card border-white/5 rounded-[2rem] flex items-center justify-between hover:border-[#FF2D55]/50 transition-all group">
-                  <div className="text-left">
+                   <div className="text-left">
                     <p className="text-xl font-black italic uppercase group-hover:text-[#FF2D55]">{c.name}</p>
                     <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">{c.phone}</p>
                   </div>
-                  <User size={24} className="text-zinc-800 group-hover:text-[#FF2D55]" />
+                  <User size={24} className="text-zinc-800" />
                 </button>
               ))}
             </div>
@@ -202,26 +157,15 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
 
         {step === 'VEICULO' && selectedClient && (
           <div className="w-full max-w-2xl space-y-8 animate-in slide-in-from-right-4 duration-500 flex flex-col items-center">
-            <div className="text-center">
-              <h1 className="text-4xl md:text-5xl font-black italic uppercase">FROTA</h1>
-              <p className="text-zinc-600 font-black uppercase tracking-widest text-[10px] mt-2">SELECIONE O CARRO DE {selectedClient.name}</p>
-            </div>
+            <h1 className="text-4xl font-black italic uppercase tracking-tighter">VEÍCULO</h1>
             <div className="grid grid-cols-1 gap-4 w-full">
-              {clientVehicles.map(v => (
-                <button key={v.id} onClick={() => { setSelectedVehicle(v); setStep('ITENS'); }} className="p-6 glass-card border-white/5 rounded-[2.5rem] flex items-center justify-between hover:border-[#FF2D55]/50 transition-all group text-left">
-                  <div className="flex items-center gap-6">
-                    <div className="p-4 bg-white/5 rounded-2xl border border-white/10 text-zinc-700 group-hover:text-[#FF2D55]">
-                       <Car size={24} />
-                    </div>
-                    <div>
-                      <p className="text-xl font-black italic uppercase group-hover:text-white">{v.plate}</p>
-                      <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">{v.model}</p>
-                    </div>
+              {vehicles.filter(v => v.clientId === selectedClient.id).map(v => (
+                <button key={v.id} onClick={() => { setSelectedVehicle(v); setStep('ITENS'); }} className="p-6 glass-card border-white/5 rounded-[2.5rem] flex items-center justify-between hover:border-[#FF2D55]/50 transition-all group">
+                  <div className="text-left">
+                    <p className="text-xl font-black italic uppercase text-white tracking-widest">{v.plate}</p>
+                    <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">{v.model}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-[9px] font-black text-zinc-800 uppercase italic">Último Registro</p>
-                    <p className="text-xs font-black text-zinc-500">{v.km.toLocaleString()} KM</p>
-                  </div>
+                  <Car size={24} className="text-zinc-800" />
                 </button>
               ))}
             </div>
@@ -232,61 +176,41 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
           <div className="w-full max-w-3xl space-y-10 animate-in slide-in-from-right-4 duration-500 flex flex-col items-center">
             <div className="glass-card p-8 rounded-ios border-white/10 space-y-10 w-full">
                <div className="flex items-center justify-between border-b border-white/5 pb-6">
-                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-[#FF2D55]/10 rounded-xl flex items-center justify-center text-[#FF2D55]">
-                      <Car size={24} />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-black italic uppercase tracking-tighter">{selectedVehicle.plate}</h3>
-                      <p className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">{selectedVehicle.model}</p>
-                    </div>
+                 <div>
+                    <h3 className="text-xl font-black italic uppercase tracking-tighter text-[#FF2D55]">{selectedVehicle.plate}</h3>
+                    <p className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">{selectedVehicle.model}</p>
                  </div>
-                 <button onClick={addItem} className="px-6 py-3 bg-[#FF2D55] rounded-full text-white font-black uppercase text-[9px] tracking-widest flex items-center gap-2 active:scale-90 transition-all">
-                   <Plus size={16}/> ADICIONAR ITEM
+                 <button onClick={() => setItems([...items, { id: Math.random().toString(36).substr(2, 9), description: '', quantity: 1, unitPrice: 0, type: 'SERVICE' }])} className="px-6 py-3 bg-white/5 border border-white/10 rounded-full text-white font-black uppercase text-[9px] tracking-widest hover:bg-[#FF2D55] transition-all">
+                   ADICIONAR ITEM
                  </button>
                </div>
 
                <div className="space-y-4">
                  {items.map(item => (
-                   <div key={item.id} className="bg-black p-5 rounded-[2rem] border border-white/5 space-y-4">
-                     <input type="text" placeholder="DESCRIÇÃO DA PEÇA OU SERVIÇO..." value={item.description} onChange={(e)=>updateItem(item.id, 'description', e.target.value.toUpperCase())} className="w-full bg-transparent text-[11px] font-black outline-none uppercase italic text-white tracking-widest"/>
+                   <div key={item.id} className="bg-black p-5 rounded-[2rem] border border-white/5 flex flex-col gap-4">
+                     <input type="text" placeholder="DESCRIÇÃO DO ITEM..." value={item.description} onChange={(e) => setItems(items.map(i => i.id === item.id ? {...i, description: e.target.value.toUpperCase()} : i))} className="w-full bg-transparent text-[11px] font-black outline-none uppercase italic text-white tracking-widest"/>
                      <div className="flex gap-4">
-                        <input type="number" placeholder="QTD" value={item.quantity || ''} onChange={(e)=>updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)} className="w-20 bg-white/5 border border-white/5 p-4 rounded-xl text-center text-[11px] font-black text-white outline-none"/>
-                        <div className="relative flex-1">
-                           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-800 text-[10px] font-black">R$</span>
-                           <input type="number" placeholder="UNITÁRIO" value={item.unitPrice || ''} onChange={(e)=>updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)} className="w-full bg-white/5 border border-white/5 p-4 pl-10 rounded-xl text-[11px] font-black text-white outline-none"/>
-                        </div>
-                        <button onClick={()=>removeItem(item.id)} className="p-4 text-zinc-800 hover:text-[#FF2D55]"><Trash2 size={20}/></button>
+                        <input type="number" placeholder="QTD" value={item.quantity || ''} onChange={(e) => setItems(items.map(i => i.id === item.id ? {...i, quantity: parseFloat(e.target.value) || 0} : i))} className="w-20 bg-white/5 border border-white/5 p-4 rounded-xl text-center text-[11px] font-black text-white outline-none"/>
+                        <input type="number" placeholder="UNITÁRIO" value={item.unitPrice || ''} onChange={(e) => setItems(items.map(i => i.id === item.id ? {...i, unitPrice: parseFloat(e.target.value) || 0} : i))} className="flex-1 bg-white/5 border border-white/5 p-4 rounded-xl text-[11px] font-black text-white outline-none"/>
+                        <button onClick={() => setItems(items.filter(i => i.id !== item.id))} className="p-4 text-zinc-800 hover:text-[#FF2D55]"><Trash2 size={20}/></button>
                      </div>
                    </div>
                  ))}
                </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                 <div>
-                   <label className="text-[8px] font-black text-zinc-700 tracking-widest uppercase block mb-1.5 ml-1">MÃO DE OBRA</label>
-                   <input type="number" value={labor} onChange={(e)=>setLabor(e.target.value)} className="w-full bg-black border border-white/5 p-6 rounded-[1.8rem] text-xl font-black outline-none text-white italic"/>
-                 </div>
-                 <div>
-                   <label className="text-[8px] font-black text-zinc-700 tracking-widest uppercase block mb-1.5 ml-1">KM ATUAL</label>
-                   <input type="number" value={selectedVehicle.km} onChange={(e)=>setSelectedVehicle({...selectedVehicle, km: parseFloat(e.target.value) || 0})} className="w-full bg-black border border-white/5 p-6 rounded-[1.8rem] text-xl font-black outline-none text-[#FF2D55] italic"/>
-                 </div>
-                 <div>
-                   <label className="text-[8px] font-black text-zinc-700 tracking-widest uppercase block mb-1.5 ml-1">PAGAMENTO</label>
-                   <select value={paymentStatus} onChange={(e)=>setPaymentStatus(e.target.value as PaymentStatus)} className="w-full h-[74px] bg-black border border-white/5 px-6 rounded-[1.8rem] text-[10px] font-black uppercase outline-none text-white italic cursor-pointer">
-                     <option value={PaymentStatus.PENDENTE}>PENDENTE</option>
-                     <option value={PaymentStatus.PAGO}>PAGO</option>
-                   </select>
-                 </div>
-               </div>
-
-               <div className="p-10 bg-white/5 rounded-ios border border-white/5 flex flex-col items-center gap-1">
-                 <span className="text-[9px] font-black text-zinc-700 uppercase tracking-widest italic">VALOR TOTAL LÍQUIDO</span>
-                 <span className="text-5xl font-black italic">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="text-[8px] font-black text-zinc-700 tracking-widest uppercase block mb-2">MÃO DE OBRA</label>
+                    <input type="number" value={labor} onChange={(e) => setLabor(e.target.value)} className="w-full bg-black border border-white/5 p-6 rounded-[1.8rem] text-xl font-black outline-none text-white italic"/>
+                  </div>
+                  <div>
+                    <label className="text-[8px] font-black text-zinc-700 tracking-widest uppercase block mb-2">KM ATUAL</label>
+                    <input type="number" value={selectedVehicle.km} onChange={(e) => setSelectedVehicle({...selectedVehicle, km: parseFloat(e.target.value) || 0})} className="w-full bg-black border border-white/5 p-6 rounded-[1.8rem] text-xl font-black outline-none text-[#FF2D55] italic"/>
+                  </div>
                </div>
 
                <button onClick={handleFinalize} disabled={isSaving} className="w-full bg-[#FF2D55] py-6 rounded-ios font-black uppercase text-[10px] tracking-[0.5em] flex items-center justify-center gap-5 active:scale-95 italic transition-all shadow-[0_20px_60px_rgba(255,45,85,0.3)]">
-                 {isSaving ? <Loader2 className="animate-spin" size={24}/> : <Check size={24}/>} FINALIZAR E GERAR NOTA
+                 {isSaving ? <Loader2 className="animate-spin" /> : 'GERAR NOTA FISCAL ELITE'}
                </button>
             </div>
           </div>
@@ -296,98 +220,95 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
           <div className="w-full flex flex-col items-center gap-12 animate-in fade-in duration-700">
              <div className="invoice-preview-container">
                <div className="invoice-scale-wrapper">
-                 <div ref={invoiceRef} className={`kaen-invoice shadow-[0_40px_100px_rgba(0,0,0,0.5)] ${modeClass}`}>
-                    {/* Header Kaen */}
-                    <div className="flex justify-between items-start mb-8 border-b-2 border-zinc-100 pb-8 flex-shrink-0 invoice-header">
-                       <div className="flex gap-4 items-center">
+                 <div ref={invoiceRef} className={`kaen-invoice shadow-[0_40px_100px_rgba(0,0,0,0.5)] ${densityClass}`}>
+                    
+                    {/* Header Profissional */}
+                    <div className="flex justify-between items-start mb-10 border-b-2 border-zinc-100 pb-10 invoice-header">
+                       <div className="flex gap-5 items-center">
                           <div className="w-16 h-16 bg-black rounded-xl flex items-center justify-center text-white">
                             <Wrench size={32} />
                           </div>
                           <div>
-                            <h1 className="text-3xl font-black tracking-tighter uppercase leading-none mb-1">KAEN MECÂNICA</h1>
-                            <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-[0.3em] italic">RUA JOAQUIM MARQUES ALVES, 765</p>
+                            <h1 className="text-2xl font-black tracking-tighter uppercase leading-none mb-1">KAEN MECÂNICA</h1>
+                            <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">ESTABELECIMENTO TÉCNICO V26.0</p>
                           </div>
                        </div>
                        <div className="text-right">
-                          <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1">NOTA FISCAL</p>
-                          <p className="text-4xl font-black leading-none mb-1 tracking-tighter">KP-{finalOs.osNumber}</p>
-                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest italic">{new Date(finalOs.createdAt).toLocaleDateString('pt-BR')}</p>
+                          <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">PROTOCOLO</p>
+                          <p className="text-3xl font-black leading-none mb-1 tracking-tighter">KP-{finalOs.osNumber}</p>
+                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{new Date().toLocaleDateString('pt-BR')}</p>
                        </div>
                     </div>
 
-                    {/* Info Grid */}
-                    <div className="grid grid-cols-2 gap-4 mb-6 flex-shrink-0 info-grid">
-                      <div className="bg-zinc-50 p-6 rounded-[2rem] border border-zinc-100 info-block">
-                        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-2 italic">CLIENTE / PROPRIETÁRIO</p>
-                        <p className="text-2xl font-black uppercase leading-tight tracking-tighter info-block-p">{finalOs.clientName}</p>
-                        <p className="text-[11px] font-bold text-zinc-500 mt-1 italic">{selectedClient?.phone}</p>
-                      </div>
-                      <div className="bg-zinc-50 p-6 rounded-[2rem] border border-zinc-100 flex flex-col justify-between info-block">
+                    {/* Blocos de Dados - GRID FIXO */}
+                    <div className="grid grid-cols-2 gap-5 mb-8">
+                       <div className="bg-zinc-50 p-6 rounded-[1.5rem] border border-zinc-100">
+                          <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-2">PROPRIETÁRIO</p>
+                          <p className="text-lg font-black uppercase leading-tight">{finalOs.clientName}</p>
+                       </div>
+                       <div className="bg-zinc-50 p-6 rounded-[1.5rem] border border-zinc-100 flex justify-between">
                           <div>
-                            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-2 italic">VEÍCULO / PLACA</p>
-                            <p className="text-2xl font-black uppercase leading-none tracking-tighter info-block-p">{finalOs.vehiclePlate}</p>
-                            <p className="text-[11px] font-bold text-zinc-500 uppercase mt-2 italic">{finalOs.vehicleModel}</p>
+                            <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-2">VEÍCULO</p>
+                            <p className="text-lg font-black uppercase leading-none tracking-widest">{finalOs.vehiclePlate}</p>
                           </div>
-                          <div className="mt-2">
-                             <span className="text-[9px] font-bold text-zinc-400 uppercase italic tracking-widest mr-2">KM:</span>
-                             <span className="text-xl font-black italic">{finalOs.vehicleKm || '0'}</span>
+                          <div className="text-right">
+                            <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-2">KM</p>
+                            <p className="text-lg font-black italic">{finalOs.vehicleKm || '0'} KM</p>
                           </div>
-                      </div>
+                       </div>
                     </div>
 
-                    {/* Table Itens - GRID RÍGIDO */}
-                    <div className="items-container overflow-visible flex-1">
-                       <table className="invoice-table">
+                    {/* TABELA DE ITENS - MOTOR DE GRID FIXO */}
+                    <div className="flex-1">
+                       <table className="os-table">
                           <thead>
-                            <tr className="text-[9px] font-bold text-zinc-400 uppercase tracking-[0.2em] border-b-2 border-zinc-100">
-                              <th className="pb-4 italic text-left col-desc">ESPECIFICAÇÃO DO SERVIÇO</th>
-                              <th className="pb-4 text-center px-2 col-qtd">QTD</th>
-                              <th className="pb-4 text-right px-2 col-unit">UNIT.</th>
-                              <th className="pb-4 text-right col-total">TOTAL</th>
+                            <tr>
+                              <th className="w-desc">ESPECIFICAÇÃO DOS ITENS E SERVIÇOS</th>
+                              <th className="w-qtd">QTD</th>
+                              <th className="w-unit">UNIT.</th>
+                              <th className="w-total">TOTAL</th>
                             </tr>
                           </thead>
-                          <tbody className="font-bold text-zinc-800">
-                            {finalOs.items.map((i,idx)=>(
+                          <tbody>
+                            {finalOs.items.map((i, idx) => (
                               <tr key={idx}>
-                                <td className="uppercase leading-tight font-black tracking-tight">{i.description}</td>
-                                <td className="text-center text-zinc-400 italic">{i.quantity.toString().padStart(2, '0')}</td>
-                                <td className="text-right text-zinc-400">R$ {i.unitPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                                <td className="text-right font-black">R$ {(i.quantity*i.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                                <td className="w-desc uppercase tracking-tight">{i.description}</td>
+                                <td className="w-qtd text-zinc-400">{i.quantity.toString().padStart(2, '0')}</td>
+                                <td className="w-unit text-zinc-400">R$ {i.unitPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                                <td className="w-total">R$ {(i.quantity * i.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                               </tr>
                             ))}
                             {finalOs.laborValue > 0 && (
                               <tr className="bg-zinc-50/50">
-                                <td className="uppercase font-black italic">MÃO DE OBRA / SERVIÇOS TÉCNICOS</td>
-                                <td className="text-center text-zinc-400 italic">01</td>
+                                <td className="w-desc uppercase italic">MÃO DE OBRA TÉCNICA ESPECIALIZADA</td>
+                                <td className="w-qtd text-zinc-400">01</td>
                                 <td className="text-right text-zinc-400">R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                                <td className="text-right font-black">R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                                <td className="w-total">R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                               </tr>
                             )}
                           </tbody>
                        </table>
                     </div>
 
-                    {/* Footer Valor Reduzido */}
-                    <div className="mt-auto border-t-2 border-zinc-100 pt-6 flex-shrink-0">
-                       <div className="flex justify-between items-end">
-                          <div className="flex flex-col gap-4">
-                             <div className={`inline-flex px-6 py-2 rounded-xl border text-[9px] font-black uppercase tracking-[0.2em] italic ${finalOs.paymentStatus === PaymentStatus.PAGO ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
-                                {finalOs.paymentStatus === PaymentStatus.PAGO ? 'RECEBIDO' : 'PENDENTE'}
-                             </div>
-                             <div className="w-40 pt-2 border-t border-zinc-100">
-                                <p className="text-[8px] font-black text-zinc-200 uppercase text-center tracking-[0.3em] italic">ASSINATURA CLIENTE</p>
-                             </div>
+                    {/* Footer com Total Elegante (Não gigante) */}
+                    <div className="mt-auto pt-8 border-t-2 border-zinc-100 flex justify-between items-end">
+                       <div className="flex flex-col gap-5">
+                          <div className={`inline-flex px-5 py-2 rounded-xl border text-[9px] font-black uppercase tracking-widest italic ${finalOs.paymentStatus === PaymentStatus.PAGO ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
+                            {finalOs.paymentStatus === PaymentStatus.PAGO ? 'RECEBIDO' : 'PAGAMENTO PENDENTE'}
                           </div>
-                          
-                          <div className="bg-black px-8 py-5 rounded-[2rem] flex flex-col items-end min-w-[220px] shadow-lg">
-                             <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-1 italic">TOTAL LÍQUIDO</p>
-                             <p className="text-2xl font-black text-white leading-none tracking-tighter italic uppercase">R$ {finalOs.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                          <div className="w-40 border-t border-zinc-100 pt-2">
+                             <p className="text-[7px] font-black text-zinc-300 uppercase text-center tracking-widest">ASSINATURA DO CLIENTE</p>
                           </div>
+                       </div>
+
+                       <div className="bg-black px-10 py-6 rounded-[2rem] text-right shadow-lg">
+                          <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1 italic">VALOR TOTAL LÍQUIDO</p>
+                          <p className="text-2xl font-black text-white italic">R$ {finalOs.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                        </div>
                     </div>
 
                     <div className="absolute bottom-5 left-0 w-full text-center">
-                       <p className="text-[8px] font-black text-zinc-200 uppercase tracking-[0.6em] italic">PROTOCOLO ELITE • KAEN MECÂNICA • PERFORMANCE V26</p>
+                       <p className="text-[8px] font-black text-zinc-200 uppercase tracking-[0.6em] italic">KAEN MECÂNICA • PERFORMANCE V26 • PROTOCOLO DE EXCELÊNCIA</p>
                     </div>
                  </div>
                </div>
