@@ -117,7 +117,7 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
     renderArea.innerHTML = '';
     const clone = invoiceRef.current.cloneNode(true) as HTMLDivElement;
     
-    // Força o clone a ignorar qualquer transformação do pai
+    // Configurações críticas para captura limpa
     clone.style.transform = 'none';
     clone.style.margin = '0';
     clone.style.position = 'relative';
@@ -131,13 +131,18 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
 
     try {
       const canvas = await html2canvas(clone, {
-        scale: 2,
+        scale: 2, // Resolução nítida para WhatsApp
         useCORS: true,
         backgroundColor: "#ffffff",
         logging: false,
         letterRendering: true,
         width: 720,
-        height: 1280
+        height: 1280,
+        onclone: (clonedDoc) => {
+          // Garante que o fundo esteja branco puro no clone
+          const el = clonedDoc.querySelector('.kaen-invoice') as HTMLElement;
+          if (el) el.style.boxShadow = 'none';
+        }
       });
       
       const link = document.createElement('a');
@@ -146,11 +151,17 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
       link.click();
       renderArea.innerHTML = '';
     } catch (err) {
-      alert("Erro ao salvar imagem.");
+      alert("Erro ao salvar imagem. Use print como alternativa.");
     }
   };
 
-  const isCompact = useMemo(() => (items.length + (parseFloat(labor) > 0 ? 1 : 0)) > 12, [items.length, labor]);
+  // Determina o nível de compactação baseado no volume de dados
+  const itemCount = items.length + (parseFloat(labor) > 0 ? 1 : 0);
+  const modeClass = useMemo(() => {
+    if (itemCount > 14) return 'micro-mode';
+    if (itemCount > 8) return 'compact-mode';
+    return '';
+  }, [itemCount]);
 
   return (
     <div className="flex flex-col min-h-screen bg-black text-white items-center w-full">
@@ -214,7 +225,6 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
                 </button>
               ))}
             </div>
-            <button onClick={() => setStep('CLIENTE')} className="w-full py-4 text-zinc-700 font-black uppercase text-[9px] tracking-widest italic hover:text-white">VOLTAR PARA CLIENTES</button>
           </div>
         )}
 
@@ -286,9 +296,9 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
           <div className="w-full flex flex-col items-center gap-12 animate-in fade-in duration-700">
              <div className="invoice-preview-container">
                <div className="invoice-scale-wrapper">
-                 <div ref={invoiceRef} className={`kaen-invoice shadow-[0_40px_100px_rgba(0,0,0,0.5)] ${isCompact ? 'compact-mode' : ''}`}>
-                    {/* Header Kaen - TOPO FIXO */}
-                    <div className="flex justify-between items-start mb-8 border-b-2 border-zinc-100 pb-8 flex-shrink-0">
+                 <div ref={invoiceRef} className={`kaen-invoice shadow-[0_40px_100px_rgba(0,0,0,0.5)] ${modeClass}`}>
+                    {/* Header Kaen */}
+                    <div className="flex justify-between items-start mb-8 border-b-2 border-zinc-100 pb-8 flex-shrink-0 invoice-header">
                        <div className="flex gap-4 items-center">
                           <div className="w-16 h-16 bg-black rounded-xl flex items-center justify-center text-white">
                             <Wrench size={32} />
@@ -305,81 +315,79 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
                        </div>
                     </div>
 
-                    {/* DADOS DO CLIENTE - AUTOMÁTICO */}
-                    <div className="grid grid-cols-2 gap-4 mb-6 flex-shrink-0">
-                      <div className="bg-zinc-50 p-6 rounded-[2rem] border border-zinc-100">
+                    {/* Info Grid */}
+                    <div className="grid grid-cols-2 gap-4 mb-6 flex-shrink-0 info-grid">
+                      <div className="bg-zinc-50 p-6 rounded-[2rem] border border-zinc-100 info-block">
                         <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-2 italic">CLIENTE / PROPRIETÁRIO</p>
-                        <p className="text-2xl font-black uppercase leading-tight tracking-tighter info-block-text">{finalOs.clientName}</p>
+                        <p className="text-2xl font-black uppercase leading-tight tracking-tighter info-block-p">{finalOs.clientName}</p>
                         <p className="text-[11px] font-bold text-zinc-500 mt-1 italic">{selectedClient?.phone}</p>
                       </div>
-                      <div className="bg-zinc-50 p-6 rounded-[2rem] border border-zinc-100 flex flex-col justify-between">
-                         <div className="flex justify-between items-start">
+                      <div className="bg-zinc-50 p-6 rounded-[2rem] border border-zinc-100 flex flex-col justify-between info-block">
                           <div>
-                            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-2 italic">VEÍCULO</p>
-                            <p className="text-2xl font-black uppercase leading-none tracking-tighter info-block-text">{finalOs.vehiclePlate}</p>
+                            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-2 italic">VEÍCULO / PLACA</p>
+                            <p className="text-2xl font-black uppercase leading-none tracking-tighter info-block-p">{finalOs.vehiclePlate}</p>
                             <p className="text-[11px] font-bold text-zinc-500 uppercase mt-2 italic">{finalOs.vehicleModel}</p>
                           </div>
-                          <div className="text-right">
-                            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-2 italic">KM ATUAL</p>
-                            <p className="text-xl font-black tracking-tighter italic">{finalOs.vehicleKm || '0'} KM</p>
+                          <div className="mt-2">
+                             <span className="text-[9px] font-bold text-zinc-400 uppercase italic tracking-widest mr-2">KM:</span>
+                             <span className="text-xl font-black italic">{finalOs.vehicleKm || '0'}</span>
                           </div>
-                         </div>
                       </div>
                     </div>
 
-                    {/* ÁREA DE ITENS - DINÂMICA */}
-                    <div className="items-container overflow-visible">
-                       <table className="w-full text-left">
+                    {/* Table Itens - GRID RÍGIDO */}
+                    <div className="items-container overflow-visible flex-1">
+                       <table className="invoice-table">
                           <thead>
-                            <tr className="text-[9px] font-bold text-zinc-400 uppercase tracking-[0.2em] border-b-2 border-zinc-100 pb-3">
-                              <th className="pb-4 italic">ESPECIFICAÇÃO DO ITEM / SERVIÇO</th>
-                              <th className="pb-4 text-center px-4">QTD</th>
-                              <th className="pb-4 text-right px-4">UNITÁRIO</th>
-                              <th className="pb-4 text-right">TOTAL</th>
+                            <tr className="text-[9px] font-bold text-zinc-400 uppercase tracking-[0.2em] border-b-2 border-zinc-100">
+                              <th className="pb-4 italic text-left col-desc">ESPECIFICAÇÃO DO SERVIÇO</th>
+                              <th className="pb-4 text-center px-2 col-qtd">QTD</th>
+                              <th className="pb-4 text-right px-2 col-unit">UNIT.</th>
+                              <th className="pb-4 text-right col-total">TOTAL</th>
                             </tr>
                           </thead>
                           <tbody className="font-bold text-zinc-800">
                             {finalOs.items.map((i,idx)=>(
-                              <tr key={idx} className="border-b border-zinc-50">
-                                <td className="text-[11px] py-4 uppercase leading-tight pr-6 font-black tracking-tight">{i.description}</td>
-                                <td className="text-[11px] py-4 text-center text-zinc-400 px-4 italic">{i.quantity.toString().padStart(2, '0')}</td>
-                                <td className="text-[11px] py-4 text-right text-zinc-400 px-4">R$ {i.unitPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                                <td className="text-[11px] py-4 text-right font-black">R$ {(i.quantity*i.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                              <tr key={idx}>
+                                <td className="uppercase leading-tight font-black tracking-tight">{i.description}</td>
+                                <td className="text-center text-zinc-400 italic">{i.quantity.toString().padStart(2, '0')}</td>
+                                <td className="text-right text-zinc-400">R$ {i.unitPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                                <td className="text-right font-black">R$ {(i.quantity*i.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                               </tr>
                             ))}
                             {finalOs.laborValue > 0 && (
                               <tr className="bg-zinc-50/50">
-                                <td className="text-[11px] py-4 uppercase font-black italic">MÃO DE OBRA / SERVIÇOS TÉCNICOS</td>
-                                <td className="text-[11px] py-4 text-center text-zinc-400 px-4 italic">01</td>
-                                <td className="text-[11px] py-4 text-right text-zinc-400 px-4">R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                                <td className="text-[11px] py-4 text-right font-black">R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                                <td className="uppercase font-black italic">MÃO DE OBRA / SERVIÇOS TÉCNICOS</td>
+                                <td className="text-center text-zinc-400 italic">01</td>
+                                <td className="text-right text-zinc-400">R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                                <td className="text-right font-black">R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                               </tr>
                             )}
                           </tbody>
                        </table>
                     </div>
 
-                    {/* RODAPÉ - VALOR FINAL PEQUENO E LEGÍVEL */}
+                    {/* Footer Valor Reduzido */}
                     <div className="mt-auto border-t-2 border-zinc-100 pt-6 flex-shrink-0">
                        <div className="flex justify-between items-end">
-                          <div className="flex flex-col gap-5">
+                          <div className="flex flex-col gap-4">
                              <div className={`inline-flex px-6 py-2 rounded-xl border text-[9px] font-black uppercase tracking-[0.2em] italic ${finalOs.paymentStatus === PaymentStatus.PAGO ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
-                                STATUS: {finalOs.paymentStatus === PaymentStatus.PAGO ? 'PAGAMENTO EFETUADO' : 'PENDENTE'}
+                                {finalOs.paymentStatus === PaymentStatus.PAGO ? 'RECEBIDO' : 'PENDENTE'}
                              </div>
-                             <div className="w-48 pt-4 border-t border-zinc-100">
-                                <p className="text-[8px] font-black text-zinc-300 uppercase text-center tracking-[0.4em] italic">AUTORIZAÇÃO / CLIENTE</p>
+                             <div className="w-40 pt-2 border-t border-zinc-100">
+                                <p className="text-[8px] font-black text-zinc-200 uppercase text-center tracking-[0.3em] italic">ASSINATURA CLIENTE</p>
                              </div>
                           </div>
                           
-                          <div className={`bg-zinc-950 px-8 py-5 rounded-[2rem] flex flex-col items-end min-w-[200px] shadow-lg ${isCompact ? 'total-box-compact' : ''}`}>
-                             <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-1 italic">TOTAL GERAL</p>
-                             <p className={`text-2xl font-black text-white leading-none tracking-tighter italic ${isCompact ? 'total-text-compact' : ''}`}>R$ {finalOs.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                          <div className="bg-black px-8 py-5 rounded-[2rem] flex flex-col items-end min-w-[220px] shadow-lg">
+                             <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-1 italic">TOTAL LÍQUIDO</p>
+                             <p className="text-2xl font-black text-white leading-none tracking-tighter italic uppercase">R$ {finalOs.totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                           </div>
                        </div>
                     </div>
 
                     <div className="absolute bottom-5 left-0 w-full text-center">
-                       <p className="text-[8px] font-black text-zinc-200 uppercase tracking-[0.6em] italic">PROTOCOLO ELITE • PERFORMANCE V26 • KAEN MECÂNICA</p>
+                       <p className="text-[8px] font-black text-zinc-200 uppercase tracking-[0.6em] italic">PROTOCOLO ELITE • KAEN MECÂNICA • PERFORMANCE V26</p>
                     </div>
                  </div>
                </div>
@@ -387,7 +395,7 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
 
              <div className="w-full max-w-[500px] flex flex-col gap-4 px-4">
                 <button onClick={downloadImage} className="w-full bg-white text-black py-6 rounded-ios font-black uppercase text-[10px] tracking-[0.4em] flex items-center justify-center gap-4 shadow-2xl active:scale-95 italic transition-all">
-                   <ImageIcon size={24}/> SALVAR IMAGEM (WHATSAPP 9:16)
+                   <ImageIcon size={24}/> SALVAR PARA WHATSAPP
                 </button>
                 <button onClick={() => navigate('/dashboard')} className="glass-card py-5 rounded-ios font-black uppercase text-[9px] tracking-[0.4em] flex items-center justify-center hover:bg-white/5 italic transition-all">VOLTAR AO PAINEL</button>
              </div>

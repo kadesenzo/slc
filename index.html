@@ -23,22 +23,14 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        #root { 
-            width: 100%; 
-            min-height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-        }
-
+        #root { width: 100%; min-height: 100vh; display: flex; flex-direction: column; }
         .rounded-ios { border-radius: var(--ios-radius); }
-        
         .glass-card {
             background: rgba(15, 15, 17, 0.7);
             backdrop-filter: blur(40px) saturate(180%);
             -webkit-backdrop-filter: blur(40px) saturate(180%);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
-
         .no-scrollbar::-webkit-scrollbar { display: none; }
         * { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
         
@@ -50,53 +42,52 @@
             overflow-x: visible !important;
         }
 
-        /* NOTA FISCAL - FORMATO 9:16 (TELA INTEIRA CELULAR) */
+        /* NOTA FISCAL - ESTRUTURA BLINDADA 9:16 */
         .kaen-invoice {
             width: 720px;
-            height: 1280px; /* Altura fixa para formato story/whatsapp */
+            height: 1280px;
             background: white;
             color: black;
-            padding: 2.5rem;
+            padding: 40px;
             display: flex;
             flex-direction: column;
             position: relative;
-            font-family: 'Inter', sans-serif;
             box-sizing: border-box;
-            border-radius: 0;
-            flex-shrink: 0;
             overflow: hidden;
         }
 
-        /* AJUSTE DE ITENS PARA CABER NO FORMATO ALTO */
-        .items-container {
-            flex: 1;
-            overflow: hidden;
-            margin-bottom: 1.5rem;
+        /* GRID RÍGIDO PARA EVITAR SOBREPOSIÇÃO */
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; /* Impede textos de empurrarem colunas */
         }
 
-        /* MODO COMPACTO PARA CABER TUDO NA TELA */
-        .kaen-invoice.compact-mode td {
-            padding-top: 0.35rem !important;
-            padding-bottom: 0.35rem !important;
-            font-size: 10px !important;
-        }
-        
-        .total-box-compact {
-            padding: 1.5rem 2.5rem !important;
-            min-width: 220px !important;
-        }
-        
-        .total-text-compact {
-            font-size: 1.75rem !important;
-        }
+        .col-desc { width: 55%; }
+        .col-qtd { width: 10%; }
+        .col-unit { width: 17%; }
+        .col-total { width: 18%; }
 
-        /* SISTEMA DE PREVIEW COM ESCALA */
+        /* NÍVEIS DE COMPACTAÇÃO */
+        /* Normal (Até 8 itens) */
+        .kaen-invoice td { padding: 12px 5px; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+
+        /* Compacto (9-14 itens) */
+        .kaen-invoice.compact-mode td { padding: 8px 5px; font-size: 11px; }
+        .kaen-invoice.compact-mode .info-block-p { font-size: 18px !important; }
+
+        /* Micro (15+ itens) */
+        .kaen-invoice.micro-mode td { padding: 5px 5px; font-size: 9px; line-height: 1; }
+        .kaen-invoice.micro-mode .invoice-header { margin-bottom: 15px !important; padding-bottom: 15px !important; }
+        .kaen-invoice.micro-mode .info-grid { margin-bottom: 15px !important; gap: 10px !important; }
+        .kaen-invoice.micro-mode .info-block { padding: 15px !important; border-radius: 1.5rem !important; }
+
+        /* SISTEMA DE PREVIEW */
         .invoice-preview-container {
             display: flex;
             justify-content: center;
             width: 100%;
             overflow: visible;
-            padding: 10px 0;
         }
 
         .invoice-scale-wrapper {
@@ -107,33 +98,20 @@
         }
 
         @media (max-width: 850px) {
-            .invoice-scale-wrapper {
-                transform: scale(0.42);
-                margin-bottom: -740px;
-            }
+            .invoice-scale-wrapper { transform: scale(0.42); margin-bottom: -740px; }
         }
 
         @media (max-width: 450px) {
-            .invoice-scale-wrapper {
-                transform: scale(0.35);
-                margin-bottom: -830px;
-            }
-        }
-        
-        @media (min-width: 851px) {
-            .invoice-scale-wrapper {
-                transform: scale(0.60);
-                margin-bottom: -510px;
-            }
+            .invoice-scale-wrapper { transform: scale(0.35); margin-bottom: -830px; }
         }
 
-        /* Container oculto para renderização nítida */
         #hidden-render-area {
             position: absolute;
             top: -9999px;
             left: -9999px;
             width: 720px;
             height: 1280px;
+            background: white;
         }
     </style>
 <script type="importmap">
