@@ -50,47 +50,58 @@
             overflow-x: visible !important;
         }
 
-        /* CONTAINER NOTA FISCAL - PROPORÇÃO A4 VERTICAL */
+        /* NOTA FISCAL - FORMATO 9:16 (TELA INTEIRA CELULAR) */
         .kaen-invoice {
-            width: 800px;
-            min-height: 1131px; /* Proporção exata A4 */
+            width: 720px;
+            height: 1280px; /* Altura fixa para formato story/whatsapp */
             background: white;
             color: black;
-            padding: 3.5rem;
+            padding: 2.5rem;
             display: flex;
             flex-direction: column;
             position: relative;
             font-family: 'Inter', sans-serif;
             box-sizing: border-box;
-            border-radius: 4px;
+            border-radius: 0;
             flex-shrink: 0;
-            transition: all 0.3s ease;
+            overflow: hidden;
         }
 
-        /* MODO COMPACTO PARA MUITOS ITENS */
-        .kaen-invoice.compact-mode {
-            padding: 2rem 3.5rem;
+        /* AJUSTE DE ITENS PARA CABER NO FORMATO ALTO */
+        .items-container {
+            flex: 1;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
         }
+
+        /* MODO COMPACTO PARA CABER TUDO NA TELA */
         .kaen-invoice.compact-mode td {
-            padding-top: 0.5rem !important;
-            padding-bottom: 0.5rem !important;
-            font-size: 11px !important;
+            padding-top: 0.35rem !important;
+            padding-bottom: 0.35rem !important;
+            font-size: 10px !important;
         }
-        .kaen-invoice.compact-mode .info-block-text {
-            font-size: 1.5rem !important;
+        
+        .total-box-compact {
+            padding: 1.5rem 2.5rem !important;
+            min-width: 220px !important;
+        }
+        
+        .total-text-compact {
+            font-size: 1.75rem !important;
         }
 
-        /* PREVIEW SYSTEM */
+        /* SISTEMA DE PREVIEW COM ESCALA */
         .invoice-preview-container {
             display: flex;
             justify-content: center;
             width: 100%;
             overflow: visible;
-            position: relative;
+            padding: 10px 0;
         }
 
         .invoice-scale-wrapper {
-            width: 800px;
+            width: 720px;
+            height: 1280px;
             transform-origin: top center;
             flex-shrink: 0;
         }
@@ -98,22 +109,31 @@
         @media (max-width: 850px) {
             .invoice-scale-wrapper {
                 transform: scale(0.42);
-                margin-bottom: -650px;
+                margin-bottom: -740px;
             }
         }
 
         @media (max-width: 450px) {
             .invoice-scale-wrapper {
-                transform: scale(0.32);
-                margin-bottom: -760px;
+                transform: scale(0.35);
+                margin-bottom: -830px;
             }
         }
         
         @media (min-width: 851px) {
             .invoice-scale-wrapper {
-                transform: scale(0.75);
-                margin-bottom: -280px;
+                transform: scale(0.60);
+                margin-bottom: -510px;
             }
+        }
+
+        /* Container oculto para renderização nítida */
+        #hidden-render-area {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+            width: 720px;
+            height: 1280px;
         }
     </style>
 <script type="importmap">
@@ -135,6 +155,7 @@
 </head>
 <body>
     <div id="root"></div>
+    <div id="hidden-render-area"></div>
     <script type="module" src="/index.tsx"></script>
 </body>
 </html>
