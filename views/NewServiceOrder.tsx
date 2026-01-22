@@ -91,11 +91,9 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
         updatedAt: new Date().toISOString()
       };
 
-      // Salvar O.S.
       const currentOrders = JSON.parse(localStorage.getItem(`kaenpro_${session.username}_orders`) || '[]');
       await syncData('orders', [...currentOrders, os]);
 
-      // Sincronizar KM com Veículo (FROTA)
       const updatedVehicles = vehicles.map(v => 
         v.id === selectedVehicle.id ? { ...v, km: parseFloat(selectedVehicle.km.toString()) } : v
       );
@@ -112,19 +110,39 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
 
   const downloadImage = async () => {
     if (!invoiceRef.current) return;
-    const canvas = await html2canvas(invoiceRef.current, { 
-      scale: 3, 
-      backgroundColor: '#FFFFFF', 
+    
+    // Configurações otimizadas para evitar o bug de sobreposição (clipping/scale bug)
+    const options = {
+      scale: 2, // 2 é o ideal para WhatsApp sem bugar o motor gráfico do celular
       useCORS: true,
-      logging: false
-    });
-    const link = document.createElement('a');
-    link.download = `KAEN_MECANICA_${finalOs?.osNumber}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+      backgroundColor: "#ffffff",
+      logging: false,
+      allowTaint: true,
+      letterRendering: true, // Força o render correto de cada letra para evitar encavalamento
+      onclone: (clonedDoc: Document) => {
+        // Removemos qualquer transform de escala do clone antes de "tirar a foto"
+        const element = clonedDoc.getElementById('printable-invoice');
+        if (element) {
+          element.style.transform = 'none';
+          element.style.margin = '0';
+          element.style.padding = '3.5rem'; // Mantém o padding original A4
+          element.style.boxShadow = 'none'; // Remove sombra para não bugar bordas
+        }
+      }
+    };
+
+    try {
+      const canvas = await html2canvas(invoiceRef.current, options);
+      const link = document.createElement('a');
+      link.download = `KAEN_MECANICA_${finalOs?.osNumber}.png`;
+      link.href = canvas.toDataURL('image/png', 1.0);
+      link.click();
+    } catch (err) {
+      console.error("Erro ao gerar imagem:", err);
+      alert("Erro ao processar imagem. Tente tirar um print da tela.");
+    }
   };
 
-  // Verifica se precisa de modo compacto (mais de 10 itens)
   const isCompact = useMemo(() => (items.length + (parseFloat(labor) > 0 ? 1 : 0)) > 10, [items.length, labor]);
 
   return (
@@ -261,7 +279,7 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
           <div className="w-full flex flex-col items-center gap-12 animate-in fade-in duration-700">
              <div className="invoice-preview-container">
                <div className="invoice-scale-wrapper">
-                 <div ref={invoiceRef} className={`kaen-invoice shadow-[0_40px_100px_rgba(0,0,0,0.5)] ${isCompact ? 'compact-mode' : ''}`}>
+                 <div ref={invoiceRef} id="printable-invoice" className={`kaen-invoice shadow-[0_40px_100px_rgba(0,0,0,0.5)] ${isCompact ? 'compact-mode' : ''}`}>
                     {/* Header Kaen */}
                     <div className="flex justify-between items-start mb-10 border-b-2 border-zinc-100 pb-10">
                        <div className="flex gap-6 items-center">
