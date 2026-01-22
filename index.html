@@ -21,8 +21,6 @@
             margin: 0;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
-            display: flex;
-            justify-content: center;
         }
 
         #root { 
@@ -44,41 +42,53 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         * { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
         
-        /* Centralização Universal */
         main {
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
             width: 100% !important;
-            overflow-x: visible !important; /* IMPORTANTE: Permite que a nota escalada não seja cortada */
+            overflow-x: visible !important;
         }
 
-        /* Container da Nota Kaen - PROPORÇÃO A4 (Vertical) */
+        /* CONTAINER NOTA FISCAL - PROPORÇÃO A4 VERTICAL */
         .kaen-invoice {
             width: 800px;
-            min-height: 1131px;
+            min-height: 1131px; /* Proporção exata A4 */
             background: white;
             color: black;
-            padding: 4rem;
+            padding: 3.5rem;
             display: flex;
             flex-direction: column;
             position: relative;
             font-family: 'Inter', sans-serif;
             box-sizing: border-box;
             border-radius: 4px;
-            flex-shrink: 0; /* Impede que o flexbox tente amassar a nota */
+            flex-shrink: 0;
+            transition: all 0.3s ease;
         }
 
-        /* Sistema de Preview Ante-Corte */
+        /* MODO COMPACTO PARA MUITOS ITENS */
+        .kaen-invoice.compact-mode {
+            padding: 2rem 3.5rem;
+        }
+        .kaen-invoice.compact-mode td {
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+            font-size: 11px !important;
+        }
+        .kaen-invoice.compact-mode .info-block-text {
+            font-size: 1.5rem !important;
+        }
+
+        /* PREVIEW SYSTEM */
         .invoice-preview-container {
             display: flex;
             justify-content: center;
             width: 100%;
-            overflow: visible; /* Garante que as laterais não sumam */
+            overflow: visible;
             position: relative;
         }
 
-        /* Wrapper que mantém a base de 800px mas escala para o olho do usuário */
         .invoice-scale-wrapper {
             width: 800px;
             transform-origin: top center;
@@ -94,15 +104,15 @@
 
         @media (max-width: 450px) {
             .invoice-scale-wrapper {
-                transform: scale(0.35);
-                margin-bottom: -740px;
+                transform: scale(0.32);
+                margin-bottom: -760px;
             }
         }
         
         @media (min-width: 851px) {
             .invoice-scale-wrapper {
-                transform: scale(0.70);
-                margin-bottom: -340px;
+                transform: scale(0.75);
+                margin-bottom: -280px;
             }
         }
     </style>

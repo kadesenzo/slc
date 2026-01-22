@@ -80,7 +80,7 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
         vehiclePlate: selectedVehicle.plate,
         vehicleModel: selectedVehicle.model,
         vehicleKm: selectedVehicle.km.toString(),
-        problem: 'MANUTENÇÃO KAEN MECÂNICA',
+        problem: 'MANUTENÇÃO TÉCNICA ESPECIALIZADA',
         items,
         laborValue: parseFloat(labor) || 0,
         discount: 0,
@@ -91,11 +91,11 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
         updatedAt: new Date().toISOString()
       };
 
-      // 1. Salvar a O.S.
+      // Salvar O.S.
       const currentOrders = JSON.parse(localStorage.getItem(`kaenpro_${session.username}_orders`) || '[]');
       await syncData('orders', [...currentOrders, os]);
 
-      // 2. Sincronizar KM com a Frota (Veículos)
+      // Sincronizar KM com Veículo (FROTA)
       const updatedVehicles = vehicles.map(v => 
         v.id === selectedVehicle.id ? { ...v, km: parseFloat(selectedVehicle.km.toString()) } : v
       );
@@ -124,9 +124,11 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
     link.click();
   };
 
+  // Verifica se precisa de modo compacto (mais de 10 itens)
+  const isCompact = useMemo(() => (items.length + (parseFloat(labor) > 0 ? 1 : 0)) > 10, [items.length, labor]);
+
   return (
     <div className="flex flex-col min-h-screen bg-black text-white items-center w-full">
-      {/* Header Centralizado */}
       <div className="w-full p-6 md:p-8 border-b border-white/5 flex items-center justify-between glass-card sticky top-0 z-50 print:hidden">
         <button onClick={() => navigate(-1)} className="p-3 bg-white/5 rounded-full text-zinc-500 hover:text-white border border-white/10 transition-all">
           <ChevronLeft size={20} />
@@ -177,7 +179,7 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
                     </div>
                     <div>
                       <p className="text-xl font-black italic uppercase group-hover:text-white">{v.plate}</p>
-                      <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">{v.model} • {v.brand}</p>
+                      <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">{v.model}</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -186,12 +188,6 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
                   </div>
                 </button>
               ))}
-              {clientVehicles.length === 0 && (
-                <div className="text-center p-10 border-2 border-dashed border-zinc-900 rounded-ios opacity-30">
-                  <Car size={32} className="mx-auto mb-4" />
-                  <p className="text-xs font-black uppercase tracking-widest">Nenhum veículo vinculado a este cliente</p>
-                </div>
-              )}
             </div>
             <button onClick={() => setStep('CLIENTE')} className="w-full py-4 text-zinc-700 font-black uppercase text-[9px] tracking-widest italic hover:text-white">VOLTAR PARA CLIENTES</button>
           </div>
@@ -207,7 +203,7 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
                     </div>
                     <div>
                       <h3 className="text-xl font-black italic uppercase tracking-tighter">{selectedVehicle.plate}</h3>
-                      <p className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">{selectedVehicle.model} • {selectedClient?.name}</p>
+                      <p className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest">{selectedVehicle.model}</p>
                     </div>
                  </div>
                  <button onClick={addItem} className="px-6 py-3 bg-[#FF2D55] rounded-full text-white font-black uppercase text-[9px] tracking-widest flex items-center gap-2 active:scale-90 transition-all">
@@ -238,12 +234,7 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
                  </div>
                  <div>
                    <label className="text-[8px] font-black text-zinc-700 tracking-widest uppercase block mb-1.5 ml-1">KM ATUAL</label>
-                   <input 
-                      type="number" 
-                      value={selectedVehicle.km} 
-                      onChange={(e) => setSelectedVehicle({...selectedVehicle, km: parseFloat(e.target.value) || 0})}
-                      className="w-full bg-black border border-white/5 p-6 rounded-[1.8rem] text-xl font-black outline-none text-[#FF2D55] italic"
-                    />
+                   <input type="number" value={selectedVehicle.km} onChange={(e)=>setSelectedVehicle({...selectedVehicle, km: parseFloat(e.target.value) || 0})} className="w-full bg-black border border-white/5 p-6 rounded-[1.8rem] text-xl font-black outline-none text-[#FF2D55] italic"/>
                  </div>
                  <div>
                    <label className="text-[8px] font-black text-zinc-700 tracking-widest uppercase block mb-1.5 ml-1">PAGAMENTO</label>
@@ -260,7 +251,7 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
                </div>
 
                <button onClick={handleFinalize} disabled={isSaving} className="w-full bg-[#FF2D55] py-6 rounded-ios font-black uppercase text-[10px] tracking-[0.5em] flex items-center justify-center gap-5 active:scale-95 italic transition-all shadow-[0_20px_60px_rgba(255,45,85,0.3)]">
-                 {isSaving ? <Loader2 className="animate-spin" size={24}/> : <Check size={24}/>} GERAR NOTA FISCAL
+                 {isSaving ? <Loader2 className="animate-spin" size={24}/> : <Check size={24}/>} FINALIZAR E GERAR NOTA
                </button>
             </div>
           </div>
@@ -270,9 +261,9 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
           <div className="w-full flex flex-col items-center gap-12 animate-in fade-in duration-700">
              <div className="invoice-preview-container">
                <div className="invoice-scale-wrapper">
-                 <div ref={invoiceRef} className="kaen-invoice shadow-[0_40px_100px_rgba(0,0,0,0.5)]">
+                 <div ref={invoiceRef} className={`kaen-invoice shadow-[0_40px_100px_rgba(0,0,0,0.5)] ${isCompact ? 'compact-mode' : ''}`}>
                     {/* Header Kaen */}
-                    <div className="flex justify-between items-start mb-12 border-b-2 border-zinc-100 pb-10">
+                    <div className="flex justify-between items-start mb-10 border-b-2 border-zinc-100 pb-10">
                        <div className="flex gap-6 items-center">
                           <div className="w-20 h-20 bg-black rounded-2xl flex items-center justify-center text-white">
                             <Wrench size={40} />
@@ -289,18 +280,18 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
                        </div>
                     </div>
 
-                    {/* Info Blocks Kaen */}
-                    <div className="grid grid-cols-2 gap-8 mb-12">
+                    {/* Info Blocks */}
+                    <div className="grid grid-cols-2 gap-8 mb-10">
                       <div className="bg-zinc-50 p-10 rounded-[3rem] border border-zinc-100">
                         <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4 italic">CLIENTE / PROPRIETÁRIO</p>
-                        <p className="text-3xl font-black uppercase leading-tight tracking-tighter">{finalOs.clientName}</p>
+                        <p className="text-3xl font-black uppercase leading-tight tracking-tighter info-block-text">{finalOs.clientName}</p>
                         <p className="text-[14px] font-bold text-zinc-500 mt-2 italic">{selectedClient?.phone}</p>
                       </div>
                       <div className="bg-zinc-50 p-10 rounded-[3rem] border border-zinc-100 flex flex-col justify-between">
                          <div className="flex justify-between items-start">
                           <div>
                             <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4 italic">VEÍCULO</p>
-                            <p className="text-3xl font-black uppercase leading-none tracking-tighter">{finalOs.vehiclePlate}</p>
+                            <p className="text-3xl font-black uppercase leading-none tracking-tighter info-block-text">{finalOs.vehiclePlate}</p>
                             <p className="text-[14px] font-bold text-zinc-500 uppercase mt-3 italic">{finalOs.vehicleModel}</p>
                           </div>
                           <div className="text-right">
@@ -311,8 +302,8 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
                       </div>
                     </div>
 
-                    {/* Tabela de Itens Vertical e Ampla */}
-                    <div className="flex-1 mb-12 overflow-visible">
+                    {/* Tabela de Itens */}
+                    <div className="flex-1 mb-10 overflow-visible">
                        <table className="w-full text-left">
                           <thead>
                             <tr className="text-[11px] font-bold text-zinc-400 uppercase tracking-[0.2em] border-b-2 border-zinc-100 pb-4">
@@ -333,7 +324,7 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
                             ))}
                             {finalOs.laborValue > 0 && (
                               <tr className="bg-zinc-50/50">
-                                <td className="text-[13px] py-6 uppercase font-black italic">SERVIÇOS TÉCNICOS ESPECIALIZADOS (MÃO DE OBRA)</td>
+                                <td className="text-[13px] py-6 uppercase font-black italic">MÃO DE OBRA / SERVIÇOS TÉCNICOS</td>
                                 <td className="text-[13px] py-6 text-center text-zinc-400 px-6 italic">01</td>
                                 <td className="text-[13px] py-6 text-right text-zinc-400 px-6">R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                                 <td className="text-[13px] py-6 text-right font-black">R$ {finalOs.laborValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
@@ -343,10 +334,10 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
                        </table>
                     </div>
 
-                    {/* Footer Kaen Equilibrado - Proporção Vertical */}
+                    {/* Footer */}
                     <div className="mt-auto border-t-2 border-zinc-100 pt-10">
                        <div className="flex justify-between items-end">
-                          <div className="flex flex-col gap-10">
+                          <div className="flex flex-col gap-8">
                              <div className={`inline-flex px-10 py-3 rounded-2xl border text-[11px] font-black uppercase tracking-[0.2em] italic ${finalOs.paymentStatus === PaymentStatus.PAGO ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-amber-50 border-amber-100 text-amber-600'}`}>
                                 STATUS: {finalOs.paymentStatus === PaymentStatus.PAGO ? 'PAGAMENTO EFETUADO' : 'AGUARDANDO PAGAMENTO'}
                              </div>
@@ -362,7 +353,7 @@ const NewServiceOrder: React.FC<{ session?: UserSession; syncData?: (key: string
                        </div>
                     </div>
 
-                    <div className="absolute bottom-10 left-0 w-full text-center">
+                    <div className="absolute bottom-8 left-0 w-full text-center">
                        <p className="text-[10px] font-black text-zinc-200 uppercase tracking-[0.8em] italic">PROTOCOLO ELITE • KAEN MECÂNICA • EXCELÊNCIA EM PERFORMANCE</p>
                     </div>
                  </div>
