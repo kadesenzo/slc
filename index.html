@@ -11,7 +11,7 @@
         :root {
             --brand-red: #FF2D55;
             --bg-main: #000000;
-            --ios-radius: 3.5rem;
+            --ios-radius: 3rem;
         }
         
         body {
@@ -20,10 +20,12 @@
             color: #ffffff;
             margin: 0;
             -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
         }
 
         #root { width: 100%; min-height: 100vh; display: flex; flex-direction: column; }
         .rounded-ios { border-radius: var(--ios-radius); }
+        
         .glass-card {
             background: rgba(15, 15, 17, 0.7);
             backdrop-filter: blur(40px) saturate(180%);
@@ -31,91 +33,51 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        /* ESTRUTURA DA NOTA FISCAL - PRECISA E RÍGIDA */
-        .kaen-invoice {
-            width: 800px;
-            height: 1130px; /* Formato A4 Proporcional */
-            background: white;
-            color: black;
-            padding: 50px;
+        /* --- NOTA FISCAL BLINDADA 9:16 (FORMATO CELULAR) --- */
+        .kaen-invoice-render {
+            width: 720px;
+            height: 1280px;
+            background: #ffffff;
+            color: #000000;
+            padding: 40px;
             display: flex;
             flex-direction: column;
+            border-radius: 40px;
+            font-family: 'Inter', sans-serif;
             position: relative;
             box-sizing: border-box;
             overflow: hidden;
-            border: none;
+            /* Remove sombras e filtros para evitar bug de duplicidade na foto */
+            box-shadow: none !important;
+            text-shadow: none !important;
         }
 
-        /* TABELA BLINDADA - IMPEDE SOBREPOSIÇÃO */
-        .os-table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed; /* O SEGREDO: Força as colunas a respeitarem a largura */
-        }
+        /* Blocos fixos para evitar que um empurre o outro */
+        .inv-section-header { height: 160px; border-bottom: 2px solid #eee; margin-bottom: 20px; flex-shrink: 0; }
+        .inv-section-info { height: 220px; margin-bottom: 20px; flex-shrink: 0; }
+        .inv-section-table { flex: 1; overflow: hidden; margin-bottom: 20px; }
+        .inv-section-footer { height: 200px; border-top: 2px solid #eee; padding-top: 20px; flex-shrink: 0; }
 
-        .os-table th {
-            text-align: left;
-            font-size: 10px;
-            font-weight: 900;
-            color: #999;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
-        }
+        .invoice-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .invoice-table th { text-align: left; font-size: 11px; font-weight: 900; color: #aaa; text-transform: uppercase; padding: 10px 5px; border-bottom: 2px solid #f5f5f5; }
+        .invoice-table td { padding: 12px 5px; border-bottom: 1px solid #fafafa; font-size: 14px; font-weight: 700; word-wrap: break-word; vertical-align: top; }
 
-        .os-table td {
-            padding: 12px 0;
-            border-bottom: 1px solid #f8f8f8;
-            font-size: 13px;
-            font-weight: 700;
-            word-wrap: break-word; /* Força quebra de linha se o texto for gigante */
-            vertical-align: top;
-        }
+        .col-desc { width: 60%; }
+        .col-qtd { width: 10%; text-align: center; }
+        .col-val { width: 30%; text-align: right; }
 
-        /* COLUNAS COM LARGURA FIXA */
-        .w-desc { width: 50%; }
-        .w-qtd { width: 10%; text-align: center; }
-        .w-unit { width: 20%; text-align: right; }
-        .w-total { width: 20%; text-align: right; }
+        /* Ajustes de densidade automáticos */
+        .compact-mode td { padding: 6px 5px !important; font-size: 11px !important; }
+        .micro-mode td { padding: 4px 5px !important; font-size: 9px !important; }
 
-        /* NÍVEIS DE COMPACTAÇÃO AUTOMÁTICA */
-        .kaen-invoice.density-medium td { padding: 8px 0; font-size: 11px; }
-        .kaen-invoice.density-high td { padding: 4px 0; font-size: 9px; line-height: 1.1; }
-        .kaen-invoice.density-high .invoice-header { margin-bottom: 20px !important; }
+        /* Preview Scale para Desktop/Mobile */
+        .invoice-preview-wrapper { width: 100%; display: flex; justify-content: center; overflow: visible; padding: 10px 0; }
+        .invoice-container-scaled { width: 720px; height: 1280px; transform-origin: top center; flex-shrink: 0; border-radius: 40px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.8); }
 
-        /* PREVIEW SYSTEM */
-        .invoice-preview-container {
-            display: flex;
-            justify-content: center;
-            width: 100%;
-            padding: 20px 0;
-        }
+        @media (max-width: 850px) { .invoice-container-scaled { transform: scale(0.48); margin-bottom: -650px; } }
+        @media (max-width: 450px) { .invoice-container-scaled { transform: scale(0.4); margin-bottom: -750px; } }
 
-        .invoice-scale-wrapper {
-            width: 800px;
-            height: 1130px;
-            transform-origin: top center;
-            flex-shrink: 0;
-        }
-
-        @media (max-width: 850px) {
-            .invoice-scale-wrapper { transform: scale(0.45); margin-bottom: -600px; }
-        }
-
-        @media (max-width: 450px) {
-            .invoice-scale-wrapper { transform: scale(0.38); margin-bottom: -700px; }
-        }
-
-        /* ÁREA DE RENDERIZAÇÃO OCULTA (SOLUÇÃO PARA O BUG DA IMAGEM) */
-        #render-hidden-os {
-            position: absolute;
-            left: -9999px;
-            top: -9999px;
-            width: 800px;
-            height: 1130px;
-            background: white;
-        }
+        #render-target-hidden { position: absolute; left: -9999px; top: 0; width: 720px; height: 1280px; background: white; pointer-events: none; }
     </style>
 <script type="importmap">
 {
@@ -136,7 +98,7 @@
 </head>
 <body>
     <div id="root"></div>
-    <div id="render-hidden-os"></div>
+    <div id="render-target-hidden"></div>
     <script type="module" src="/index.tsx"></script>
 </body>
 </html>
